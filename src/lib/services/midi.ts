@@ -47,7 +47,7 @@ export function sendMidi(outputId: string, action: MidiAction) {
 }
 
 export function describe(data: Uint8Array) {
-  const [s, d1, d2] = data;
+  const s = data[0] ?? 0, d1 = data[1], d2 = data[2];
   const type = s & 0xf0;
   const ch = (s & 0x0f) + 1;
   if (type === 0x90 && d2) return `Note On  ch${ch} n${d1} v${d2}`;

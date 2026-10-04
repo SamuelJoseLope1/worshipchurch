@@ -28,7 +28,7 @@ function ResetPage() {
     setBusy(true);
     const { error } = await supabase.auth.updateUser({ password: pw });
     setBusy(false);
-    if (error) return toast.error("El enlace expiró o no es válido");
+    if (error) { toast.error("El enlace expiró o no es válido"); return; }
     toast.success("Contraseña actualizada");
     nav({ to: "/dashboard" });
   }

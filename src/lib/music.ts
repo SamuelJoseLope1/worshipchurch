@@ -21,7 +21,7 @@ export function semitonesBetween(from: string, to: string): number {
 
 export function transposeNote(note: string, semis: number): string {
   if (!(note in ALIASES)) return note;
-  return KEYS[(((ALIASES[note] + semis) % 12) + 12) % 12];
+  return KEYS[(((ALIASES[note]! + semis) % 12) + 12) % 12]!;
 }
 
 /** Transposes a chord symbol like "G/B", "F#m7", "Bbsus4". */
@@ -45,7 +45,7 @@ export function parseLyrics(text: string): LyricSection[] {
   for (const raw of text.split(/\r?\n/)) {
     const header = raw.match(/^#\s*(.+)$/);
     if (header) {
-      current = { name: header[1].trim(), lines: [] };
+      current = { name: header[1]!.trim(), lines: [] };
       sections.push(current);
       continue;
     }
@@ -61,7 +61,7 @@ export function parseLyrics(text: string): LyricSection[] {
     let m: RegExpExecArray | null;
     while ((m = re.exec(raw))) {
       plain += raw.slice(last, m.index);
-      chords.push({ pos: plain.length, chord: m[1] });
+      chords.push({ pos: plain.length, chord: m[1]! });
       last = m.index + m[0].length;
     }
     plain += raw.slice(last);
@@ -76,8 +76,8 @@ export function parseLyrics(text: string): LyricSection[] {
 function trimEmpty(lines: LyricLine[]) {
   let a = 0;
   let b = lines.length;
-  while (a < b && !lines[a].text.trim() && !lines[a].chords.length) a++;
-  while (b > a && !lines[b - 1].text.trim() && !lines[b - 1].chords.length) b--;
+  while (a < b && !lines[a]!.text.trim() && !lines[a]!.chords.length) a++;
+  while (b > a && !lines[b - 1]!.text.trim() && !lines[b - 1]!.chords.length) b--;
   return lines.slice(a, b);
 }
 

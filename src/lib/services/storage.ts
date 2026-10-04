@@ -9,7 +9,7 @@ export interface StorageProvider {
   upload(path: string, file: Blob, contentType?: string): Promise<void>;
   signedUrl(path: string, expiresIn?: number): Promise<string>;
   remove(paths: string[]): Promise<void>;
-  list(prefix: string): Promise<{ name: string; size: number; updated_at: string | null; mimetype?: string }[]>;
+  list(prefix: string): Promise<{ name: string; size: number; updated_at: string | null; mimetype?: string | undefined }[]>;
 }
 
 const BUCKET = "media";
@@ -19,7 +19,7 @@ export const cloudStorage: StorageProvider = {
   async upload(path, file, contentType) {
     const { error } = await supabase.storage.from(BUCKET).upload(path, file, {
       upsert: true,
-      contentType: contentType || (file as File).type || undefined,
+      ...((contentType || (file as File).type) ? { contentType: contentType || (file as File).type } : {}),
     });
     if (error) throw new Error("No se pudo subir el archivo");
   },
@@ -45,7 +45,7 @@ export const cloudStorage: StorageProvider = {
         name: f.name,
         size: (f.metadata as { size?: number } | null)?.size ?? 0,
         updated_at: f.updated_at,
-        mimetype: (f.metadata as { mimetype?: string } | null)?.mimetype,
+        mimetype: (f.metadata as { mimetype?: string | undefined } | null)?.mimetype,
       }));
   },
 };

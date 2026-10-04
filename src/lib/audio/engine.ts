@@ -51,7 +51,7 @@ export type EngineSnapshot = {
   audioReady: boolean;
 };
 
-type Node = { gain: GainNode; pan: StereoPannerNode; analyser: AnalyserNode; send: GainNode; buffer?: AudioBuffer; src?: AudioBufferSourceNode };
+type Node = { gain: GainNode; pan: StereoPannerNode; analyser: AnalyserNode; send: GainNode; buffer?: AudioBuffer; src?: AudioBufferSourceNode | undefined };
 
 class AudioEngine {
   private ctx: AudioContext | null = null;
@@ -369,7 +369,7 @@ class AudioEngine {
         const bpb = beatsPerBar(this.snap.timeSig);
         const inBar = this.beatIndex % bpb;
         const compound = this.snap.timeSig.endsWith("/8") && bpb % 3 === 0;
-        const accent = this.snap.click.accent && (inBar === 0 ? 2 : compound && inBar % 3 === 0 ? 1 : 0);
+        const accent = !this.snap.click.accent ? 0 : (inBar === 0 ? 2 : compound && inBar % 3 === 0 ? 1 : 0);
         this.tick(this.nextBeatTime, accent);
         const sub = this.snap.click.subdivision;
         for (let i = 1; i < sub; i++) this.tick(this.nextBeatTime + (beatDur * i) / sub, -1);
