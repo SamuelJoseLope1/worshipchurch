@@ -39,7 +39,7 @@ export function OrgProvider({ userId, email, children }: { userId: string; email
     const list = q.data ?? [];
     if (!list.length) return;
     const saved = localStorage.getItem(KEY);
-    const pick = list.find((m) => m.org_id === saved)?.org_id ?? list[0].org_id;
+    const pick = list.find((m) => m.org_id === saved)?.org_id ?? list[0]!.org_id;
     setOrg(pick);
   }, [q.data]);
 
