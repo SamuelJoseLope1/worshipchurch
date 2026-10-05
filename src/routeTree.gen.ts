@@ -14,6 +14,8 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedSetlistsRouteImport } from './routes/_authenticated/setlists'
+import { Route as AuthenticatedSongsRouteImport } from './routes/_authenticated/songs'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -39,18 +41,32 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedSetlistsRoute = AuthenticatedSetlistsRouteImport.update({
+  id: '/setlists',
+  path: '/setlists',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedSongsRoute = AuthenticatedSongsRouteImport.update({
+  id: '/songs',
+  path: '/songs',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/setlists': typeof AuthenticatedSetlistsRoute
+  '/songs': typeof AuthenticatedSongsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/setlists': typeof AuthenticatedSetlistsRoute
+  '/songs': typeof AuthenticatedSongsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -59,12 +75,15 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/setlists': typeof AuthenticatedSetlistsRoute
+  '/_authenticated/songs': typeof AuthenticatedSongsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/reset-password' | '/dashboard'
+  fullPaths:
+    '/' | '/auth' | '/reset-password' | '/dashboard' | '/setlists' | '/songs'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/reset-password' | '/dashboard'
+  to: '/' | '/auth' | '/reset-password' | '/dashboard' | '/setlists' | '/songs'
   id:
     | '__root__'
     | '/'
@@ -72,6 +91,8 @@ export interface FileRouteTypes {
     | '/auth'
     | '/reset-password'
     | '/_authenticated/dashboard'
+    | '/_authenticated/setlists'
+    | '/_authenticated/songs'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -118,15 +139,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/setlists': {
+      id: '/_authenticated/setlists'
+      path: '/setlists'
+      fullPath: '/setlists'
+      preLoaderRoute: typeof AuthenticatedSetlistsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/songs': {
+      id: '/_authenticated/songs'
+      path: '/songs'
+      fullPath: '/songs'
+      preLoaderRoute: typeof AuthenticatedSongsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedSetlistsRoute: typeof AuthenticatedSetlistsRoute
+  AuthenticatedSongsRoute: typeof AuthenticatedSongsRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedSetlistsRoute: AuthenticatedSetlistsRoute,
+  AuthenticatedSongsRoute: AuthenticatedSongsRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
