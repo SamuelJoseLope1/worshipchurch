@@ -33,7 +33,7 @@ function Songs() {
 
   const create = async () => {
     const { data, error } = await supabase.from("songs").insert({ org_id: orgId!, title: "Nueva canción", lyrics: DEMO_LYRICS, song_key: "G", bpm: 72 }).select().single();
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     inv("songs"); setSel(data.id);
   };
 
@@ -69,13 +69,13 @@ function Editor({ song, onDeleted }: { song: SongRow; onDeleted: () => void }) {
 
   const save = async () => {
     const { error } = await supabase.from("songs").update({ title: f.title, artist: f.artist, song_key: f.song_key, bpm: f.bpm, time_signature: f.time_signature, lyrics: f.lyrics, updated_at: new Date().toISOString() }).eq("id", song.id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success("Guardado"); inv("songs");
   };
   const del = async () => {
     if (!confirm("¿Eliminar canción?")) return;
     const { error } = await supabase.from("songs").delete().eq("id", song.id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     inv("songs"); onDeleted();
   };
   const toNash = (c: string) => {

@@ -33,7 +33,7 @@ function Setlists() {
   const create = async () => {
     const date = nextCult();
     const { data, error } = await supabase.from("setlists").insert({ org_id: orgId!, name: `Culto ${date}`, service_date: date }).select().single();
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     inv("setlists"); setSel(data.id);
   };
   return (

@@ -70,7 +70,7 @@ function CreateOrg() {
     setBusy(true);
     const { error } = await supabase.from("organizations").insert({ name: name.trim() });
     setBusy(false);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success("Iglesia creada");
     qc.invalidateQueries({ queryKey: ["memberships"] });
   };
