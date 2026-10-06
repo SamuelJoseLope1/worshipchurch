@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSongs, useStems } from "@/lib/data";
 import { useInvalidate, useOrg } from "@/lib/org";
 import { engine, useEngine } from "@/lib/audio/useEngine";
-import { storage, safeName } from "@/lib/services/storage";
+import { storage, safeName, offline } from "@/lib/services/storage";
 import { AUDIO_EXT, colorFor, detectStemType, groupFor, STEM_COLOR_BG } from "@/lib/stems";
 import { formatTime, KEYS } from "@/lib/music";
 import { Button } from "@/components/ui/button";
@@ -32,11 +32,11 @@ function Mixer() {
   const [busy, setBusy] = useState("");
   const song = songs.data?.find((s) => s.id === songId);
 
-  const load = async () => {
-    if (!song || !stems.data) return;
+  const load = async (list = stems.data) => {
+    if (!song || !list?.length) return;
     await engine.loadSong({
       songId: song.id, bpm: Number(song.bpm), originalBpm: Number(song.bpm), timeSig: song.time_signature,
-      stems: stems.data.map((s) => ({ id: s.id, name: s.name, type: s.stem_type, group: s.group_name, color: s.color, path: s.storage_path, volume: Number(s.volume), pan: Number(s.pan), muted: s.muted })),
+      stems: list.map((s) => ({ id: s.id, name: s.name, type: s.stem_type, group: s.group_name, color: s.color, path: s.storage_path, volume: Number(s.volume), pan: Number(s.pan), muted: s.muted })),
     });
     engine.setPad({ note: song.song_key });
   };
@@ -44,21 +44,33 @@ function Mixer() {
   const upload = async (files: FileList | null) => {
     if (!files || !song || !orgId) return;
     const list = [...files].filter((f) => AUDIO_EXT.test(f.name));
-    let i = stems.data?.length ?? 0;
-    for (const f of list) {
-      setBusy(`Subiendo ${f.name}…`);
+    const base = stems.data?.length ?? 0;
+    let done = 0;
+    setBusy(`Analizando y subiendo ${list.length} pistas…`);
+    await Promise.all(list.map(async (f, idx) => {
+      const i = base + idx;
       try {
-        const path = `${orgId}/stems/${song.id}/${Date.now()}_${safeName(f.name)}`;
-        await storage.upload(path, f);
+        const path = `${orgId}/stems/${song.id}/${Date.now()}_${idx}_${safeName(f.name)}`;
+        const bytes = await f.arrayBuffer();
+        await Promise.all([
+          engine.preload(path, bytes.slice(0)),
+          offline.put(path, f).catch(() => {}),
+          storage.upload(path, f),
+        ]);
         const t = detectStemType(f.name);
         const { error } = await supabase.from("stems").insert({
           org_id: orgId, song_id: song.id, name: f.name.replace(/\.[^.]+$/, ""), stem_type: t, group_name: groupFor(t), color: colorFor(t),
-          storage_path: path, file_name: f.name, file_size: f.size, mime_type: f.type, sort_order: i++,
+          storage_path: path, file_name: f.name, file_size: f.size, mime_type: f.type, sort_order: i,
         });
         if (error) throw error;
       } catch (err) { toast.error(`${f.name}: ${(err as Error).message}`); }
-    }
-    setBusy(""); inv("stems"); toast.success("Pistas subidas");
+      setBusy(`Subiendo… ${++done}/${list.length}`);
+    }));
+    setBusy("");
+    inv("stems");
+    const r = await stems.refetch();
+    await load(r.data);
+    toast.success("Listo para reproducir");
   };
 
   const removeStem = async (id: string, path: string | null) => {
@@ -75,6 +87,12 @@ function Mixer() {
 
   const loaded = e.songId === songId && songId;
 
+  // Auto-cargar al elegir canción (como un reproductor de multitracks).
+  useEffect(() => {
+    if (song && stems.data?.length && e.songId !== song.id) void load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [song?.id, stems.data]);
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
@@ -82,7 +100,7 @@ function Mixer() {
           <option value="">Elige una canción…</option>
           {(songs.data ?? []).map((s) => <option key={s.id} value={s.id}>{s.title}</option>)}
         </select>
-        {song && <Button onClick={load} disabled={!stems.data?.length}>Cargar en reproductor</Button>}
+        
         {song && can("edit") && (
           <label className="cursor-pointer rounded-md border border-border px-4 py-2 text-sm hover:border-primary">
             + Subir pistas

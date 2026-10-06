@@ -69,6 +69,13 @@ class AudioEngine {
   private padNodes: { oscs: OscillatorNode[]; filter: BiquadFilterNode; env: GainNode } | null = null;
   private listeners = new Set<() => void>();
   private loadToken = 0;
+  private bufCache = new Map<string, AudioBuffer>();
+
+  /** Decode a local file right after upload so playback is instant. */
+  async preload(path: string, bytes: ArrayBuffer) {
+    const buf = await this.ensure().decodeAudioData(bytes);
+    this.bufCache.set(path, buf);
+  }
   onTick?: (pos: number) => void;
 
   snap: EngineSnapshot = {
@@ -174,8 +181,13 @@ class AudioEngine {
       stems.map(async (s) => {
         if (!s.path) return;
         try {
-          const bytes = await fetchAudioBytes(s.path);
-          const buf = await ctx.decodeAudioData(bytes);
+          let buf = this.bufCache.get(s.path);
+          if (!buf) {
+            const bytes = await fetchAudioBytes(s.path);
+            buf = await ctx.decodeAudioData(bytes);
+            if (this.bufCache.size > 60) this.bufCache.clear();
+            this.bufCache.set(s.path, buf);
+          }
           if (token !== this.loadToken) return;
           const n = this.nodes.get(s.id);
           if (n) n.buffer = buf;
