@@ -74,6 +74,11 @@ export const offline = {
     const c = await caches.open(CACHE);
     await c.put(offlineKey(path), res);
   },
+  async put(path: string, data: Blob | ArrayBuffer) {
+    if (!this.supported()) return;
+    const c = await caches.open(CACHE);
+    await c.put(offlineKey(path), new Response(data));
+  },
   async remove(path: string) {
     const c = await caches.open(CACHE);
     await c.delete(offlineKey(path));
@@ -99,7 +104,9 @@ export async function fetchAudioBytes(path: string): Promise<ArrayBuffer> {
   const url = await storage.signedUrl(path);
   const res = await fetch(url);
   if (!res.ok) throw new Error("No se pudo cargar el archivo");
-  return res.arrayBuffer();
+  const buf = await res.arrayBuffer();
+  offline.put(path, buf.slice(0)).catch(() => {});
+  return buf;
 }
 
 export function formatBytes(n: number) {
