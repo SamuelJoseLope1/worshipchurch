@@ -32,6 +32,7 @@ const NAV = [
   { to: "/dashboard", label: "Inicio" },
   { to: "/songs", label: "Canciones" },
   { to: "/setlists", label: "Setlists" },
+  { to: "/mixer", label: "Mezclador" },
 ] as const;
 
 function Shell() {
