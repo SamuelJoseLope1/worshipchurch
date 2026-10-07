@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedDawRouteImport } from './routes/_authenticated/daw'
 import { Route as AuthenticatedMixerRouteImport } from './routes/_authenticated/mixer'
 import { Route as AuthenticatedSetlistsRouteImport } from './routes/_authenticated/setlists'
 import { Route as AuthenticatedSongsRouteImport } from './routes/_authenticated/songs'
@@ -42,6 +43,11 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedDawRoute = AuthenticatedDawRouteImport.update({
+  id: '/daw',
+  path: '/daw',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedMixerRoute = AuthenticatedMixerRouteImport.update({
   id: '/mixer',
   path: '/mixer',
@@ -63,6 +69,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/daw': typeof AuthenticatedDawRoute
   '/mixer': typeof AuthenticatedMixerRoute
   '/setlists': typeof AuthenticatedSetlistsRoute
   '/songs': typeof AuthenticatedSongsRoute
@@ -72,6 +79,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/daw': typeof AuthenticatedDawRoute
   '/mixer': typeof AuthenticatedMixerRoute
   '/setlists': typeof AuthenticatedSetlistsRoute
   '/songs': typeof AuthenticatedSongsRoute
@@ -83,6 +91,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/daw': typeof AuthenticatedDawRoute
   '/_authenticated/mixer': typeof AuthenticatedMixerRoute
   '/_authenticated/setlists': typeof AuthenticatedSetlistsRoute
   '/_authenticated/songs': typeof AuthenticatedSongsRoute
@@ -94,6 +103,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/reset-password'
     | '/dashboard'
+    | '/daw'
     | '/mixer'
     | '/setlists'
     | '/songs'
@@ -103,6 +113,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/reset-password'
     | '/dashboard'
+    | '/daw'
     | '/mixer'
     | '/setlists'
     | '/songs'
@@ -113,6 +124,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/reset-password'
     | '/_authenticated/dashboard'
+    | '/_authenticated/daw'
     | '/_authenticated/mixer'
     | '/_authenticated/setlists'
     | '/_authenticated/songs'
@@ -162,6 +174,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/daw': {
+      id: '/_authenticated/daw'
+      path: '/daw'
+      fullPath: '/daw'
+      preLoaderRoute: typeof AuthenticatedDawRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/mixer': {
       id: '/_authenticated/mixer'
       path: '/mixer'
@@ -188,6 +207,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedDawRoute: typeof AuthenticatedDawRoute
   AuthenticatedMixerRoute: typeof AuthenticatedMixerRoute
   AuthenticatedSetlistsRoute: typeof AuthenticatedSetlistsRoute
   AuthenticatedSongsRoute: typeof AuthenticatedSongsRoute
@@ -195,6 +215,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedDawRoute: AuthenticatedDawRoute,
   AuthenticatedMixerRoute: AuthenticatedMixerRoute,
   AuthenticatedSetlistsRoute: AuthenticatedSetlistsRoute,
   AuthenticatedSongsRoute: AuthenticatedSongsRoute,
