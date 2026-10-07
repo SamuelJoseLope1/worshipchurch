@@ -7,4 +7,5 @@
 - [x] Enrutamiento multicanal
 - [ ] MIDI Plug & Play
 - [ ] Broadcast híbrido, grabación, overlays
-- [ ] Ollama local, SuperAdmin, DAW
+- [ ] Ollama local, SuperAdmin
+- [x] Editor DAW (formas de onda, marcadores, loop)

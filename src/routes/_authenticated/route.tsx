@@ -33,6 +33,7 @@ const NAV = [
   { to: "/songs", label: "Canciones" },
   { to: "/setlists", label: "Setlists" },
   { to: "/mixer", label: "Mezclador" },
+  { to: "/daw", label: "Editor DAW" },
 ] as const;
 
 function Shell() {
