@@ -52,7 +52,7 @@ function Daw() {
     return Math.max(0, (ev.clientX - r.left) / zoom);
   };
 
-  const addMarker = () => setMarkers((m) => [...m, { id: uid(), time: e.position, name: "Coro", type: "Section", color: "amber" }].sort((a, b) => a.time - b.time));
+  const addMarker = () => setMarkers((m) => [...m, { id: uid(), time: e.position, name: "Coro", type: "Section" as const, color: "amber" }].sort((a, b) => a.time - b.time));
   const save = async () => {
     if (!song) return;
     const { error } = await supabase.from("songs").update({ markers }).eq("id", song.id);
