@@ -4,6 +4,7 @@
 - [ ] Modo Práctica (loop por sección, varispeed, solo/mute)
 - [ ] Modo Servicio / Director (cues directos, pánico, ministración espontánea)
 - [ ] Remote por código, Presentación, Atril/partituras
-- [ ] MIDI Plug & Play, enrutamiento multicanal
+- [x] Enrutamiento multicanal
+- [ ] MIDI Plug & Play
 - [ ] Broadcast híbrido, grabación, overlays
 - [ ] Ollama local, SuperAdmin, DAW

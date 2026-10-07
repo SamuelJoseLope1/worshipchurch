@@ -22,7 +22,11 @@ export type StemInput = {
   volume: number;
   pan: number;
   muted: boolean;
+  output?: string;
 };
+
+/** Output targets: "main" (master 1-2), "st:N" stereo pair N/N+1, "ch:N" mono channel N. */
+export type OutputTarget = string;
 
 export type StemState = StemInput & {
   solo: boolean;
@@ -49,9 +53,10 @@ export type EngineSnapshot = {
   click: { enabled: boolean; volume: number; subdivision: 1 | 2 | 4; accent: boolean; metronome: boolean; beat: number };
   pad: { playing: boolean; note: string; volume: number; preset: PadPreset; fadeIn: number; fadeOut: number };
   audioReady: boolean;
+  outputs: { channels: number; sinkId: string; clickOut: OutputTarget };
 };
 
-type Node = { gain: GainNode; pan: StereoPannerNode; analyser: AnalyserNode; send: GainNode; buffer?: AudioBuffer; src?: AudioBufferSourceNode | undefined };
+type Node = { out: GainNode; gain: GainNode; pan: StereoPannerNode; analyser: AnalyserNode; send: GainNode; buffer?: AudioBuffer; src?: AudioBufferSourceNode | undefined };
 
 class AudioEngine {
   private ctx: AudioContext | null = null;
@@ -93,7 +98,87 @@ class AudioEngine {
     click: { enabled: true, volume: 0.6, subdivision: 1, accent: true, metronome: false, beat: 0 },
     pad: { playing: false, note: "C", volume: 0.5, preset: "Cálido", fadeIn: 3, fadeOut: 4 },
     audioReady: false,
+    outputs: { channels: 2, sinkId: "", clickOut: "main" },
   };
+  private merger!: ChannelMergerNode;
+  private masterSplit!: ChannelSplitterNode;
+  private routes = new Map<AudioNode, AudioNode[]>();
+
+  private buildOutputs() {
+    const ctx = this.ctx!;
+    const max = Math.max(2, ctx.destination.maxChannelCount || 2);
+    ctx.destination.channelCount = max;
+    ctx.destination.channelCountMode = "explicit";
+    ctx.destination.channelInterpretation = "discrete";
+    this.merger?.disconnect();
+    this.merger = ctx.createChannelMerger(max);
+    this.merger.connect(ctx.destination);
+    this.masterSplit?.disconnect();
+    this.masterSplit = ctx.createChannelSplitter(2);
+    this.masterGain.disconnect();
+    this.masterGain.connect(this.masterSplit);
+    this.masterSplit.connect(this.merger, 0, 0);
+    this.masterSplit.connect(this.merger, 1, 1);
+    this.set({ outputs: { ...this.snap.outputs, channels: max } });
+  }
+
+  /** Connects a node to a physical output target. */
+  private route(node: AudioNode, target: OutputTarget) {
+    const ctx = this.ctx!;
+    this.routes.get(node)?.forEach((n) => n.disconnect());
+    node.disconnect();
+    const extra: AudioNode[] = [];
+    const max = this.snap.outputs.channels;
+    const [kind, nStr] = target.split(":");
+    const n = Math.max(1, Number(nStr) || 1);
+    if (kind === "ch" && n <= max) {
+      node.connect(this.merger, 0, n - 1);
+    } else if (kind === "st" && n + 1 <= max) {
+      const sp = ctx.createChannelSplitter(2);
+      node.connect(sp);
+      sp.connect(this.merger, 0, n - 1);
+      sp.connect(this.merger, 1, n);
+      extra.push(sp);
+    } else {
+      node.connect(this.masterGain);
+    }
+    this.routes.set(node, extra);
+  }
+
+  private rerouteAll() {
+    for (const s of this.snap.stems) {
+      const nd = this.nodes.get(s.id);
+      if (nd) this.route(nd.out, s.output ?? "main");
+    }
+    this.route(this.clickGain, this.snap.outputs.clickOut);
+  }
+
+  async listOutputDevices() {
+    if (!navigator.mediaDevices?.enumerateDevices) return [];
+    try { (await navigator.mediaDevices.getUserMedia({ audio: true })).getTracks().forEach((t) => t.stop()); } catch { /* permiso opcional para ver nombres */ }
+    const all = await navigator.mediaDevices.enumerateDevices();
+    return all.filter((d) => d.kind === "audiooutput").map((d) => ({ id: d.deviceId, name: d.label || "Salida de audio" }));
+  }
+
+  async setOutputDevice(id: string) {
+    const ctx = this.ensure() as AudioContext & { setSinkId?: (id: string) => Promise<void> };
+    if (!ctx.setSinkId) throw new Error("Este navegador no permite elegir la interfaz. Usa Chrome/Edge o la app de escritorio.");
+    await ctx.setSinkId(id === "default" ? "" : id);
+    this.set({ outputs: { ...this.snap.outputs, sinkId: id } });
+    this.buildOutputs();
+    this.rerouteAll();
+  }
+
+  setStemOutput(id: string, target: OutputTarget) {
+    this.patchStem(id, { output: target });
+    const nd = this.nodes.get(id);
+    if (nd && this.ctx) this.route(nd.out, target);
+  }
+
+  setClickOutput(target: OutputTarget) {
+    this.set({ outputs: { ...this.snap.outputs, clickOut: target } });
+    if (this.ctx) this.route(this.clickGain, target);
+  }
 
   subscribe = (fn: () => void) => {
     this.listeners.add(fn);
@@ -115,7 +200,8 @@ class AudioEngine {
       this.masterGain.connect(ctx.destination);
       this.clickGain = ctx.createGain();
       this.clickGain.gain.value = this.snap.click.volume;
-      this.clickGain.connect(ctx.destination);
+      this.buildOutputs();
+      this.route(this.clickGain, this.snap.outputs.clickOut);
       this.padGain = ctx.createGain();
       this.padGain.gain.value = this.snap.pad.volume;
       this.streamDest = ctx.createMediaStreamDestination();
@@ -144,11 +230,12 @@ class AudioEngine {
   async loadSong(opts: { songId: string; bpm: number; originalBpm: number; timeSig: string; stems: StemInput[]; duration?: number | null }) {
     const ctx = this.ensure();
     this.stop();
-    this.nodes.forEach((n) => { n.gain.disconnect(); n.send.disconnect(); });
+    this.nodes.forEach((n) => { n.gain.disconnect(); n.send.disconnect(); n.out.disconnect(); this.routes.get(n.out)?.forEach((x) => x.disconnect()); this.routes.delete(n.out); });
     this.nodes.clear();
     const token = ++this.loadToken;
     const stems: StemState[] = opts.stems.map((s) => ({
       ...s,
+      output: s.output ?? "main",
       solo: false,
       streamOn: !(s.group === "Click" || s.group === "Cues"),
       status: s.path ? "loading" : "missing",
@@ -160,10 +247,11 @@ class AudioEngine {
       const analyser = ctx.createAnalyser();
       analyser.fftSize = 256;
       const send = ctx.createGain();
+      const out = ctx.createGain();
       gain.connect(pan).connect(analyser);
-      analyser.connect(this.masterGain);
+      analyser.connect(out);
       analyser.connect(send).connect(this.streamDest);
-      this.nodes.set(s.id, { gain, pan, analyser, send });
+      this.nodes.set(s.id, { out, gain, pan, analyser, send });
     }
     this.set({
       songId: opts.songId,
@@ -176,6 +264,7 @@ class AudioEngine {
       loop: { enabled: false, a: 0, b: 0 },
     });
     this.offset = 0;
+    for (const s of stems) this.route(this.nodes.get(s.id)!.out, s.output ?? "main");
     this.applyMix();
     await Promise.all(
       stems.map(async (s) => {
