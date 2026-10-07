@@ -36,7 +36,7 @@ function Mixer() {
     if (!song || !list?.length) return;
     await engine.loadSong({
       songId: song.id, bpm: Number(song.bpm), originalBpm: Number(song.bpm), timeSig: song.time_signature,
-      stems: list.map((s) => ({ id: s.id, name: s.name, type: s.stem_type, group: s.group_name, color: s.color, path: s.storage_path, volume: Number(s.volume), pan: Number(s.pan), muted: s.muted })),
+      stems: list.map((s) => ({ id: s.id, name: s.name, type: s.stem_type, group: s.group_name, color: s.color, path: s.storage_path, volume: Number(s.volume), pan: Number(s.pan), muted: s.muted, output: s.output })),
     });
     engine.setPad({ note: song.song_key });
   };
@@ -81,7 +81,7 @@ function Mixer() {
   };
 
   const saveMix = async () => {
-    for (const s of e.stems) await supabase.from("stems").update({ volume: s.volume, pan: s.pan, muted: s.muted }).eq("id", s.id);
+    for (const s of e.stems) await supabase.from("stems").update({ volume: s.volume, pan: s.pan, muted: s.muted, output: s.output ?? "main" }).eq("id", s.id);
     toast.success("Mezcla guardada"); inv("stems");
   };
 
@@ -139,6 +139,7 @@ function Mixer() {
             </div>
           </div>
 
+          <OutputDevice channels={e.outputs.channels} sinkId={e.outputs.sinkId} />
           <div className="flex gap-2 overflow-x-auto pb-2">
             {e.stems.map((s) => (
               <div key={s.id} className="flex w-24 shrink-0 flex-col items-center gap-2 rounded-lg border border-border bg-card p-2">
@@ -151,6 +152,7 @@ function Mixer() {
                   <button className={`rounded px-2 py-1 text-xs font-bold ${s.muted ? "bg-destructive text-destructive-foreground" : "bg-secondary"}`} onClick={() => engine.setStem(s.id, { muted: !s.muted })}>M</button>
                   <button className={`rounded px-2 py-1 text-xs font-bold ${s.solo ? "bg-amber text-background" : "bg-secondary"}`} onClick={() => engine.setStem(s.id, { solo: !s.solo })}>S</button>
                 </div>
+                <OutSelect value={s.output ?? "main"} channels={e.outputs.channels} onChange={(v) => engine.setStemOutput(s.id, v)} />
                 <div className="w-full truncate text-center text-xs" title={s.name}>{s.name}</div>
                 {s.status !== "ready" && <div className="text-[10px] text-amber">{s.status === "loading" ? "Cargando…" : s.error ?? "Sin archivo"}</div>}
               </div>
@@ -171,6 +173,8 @@ function Mixer() {
                   <option value={1}>Negras</option><option value={2}>Corcheas</option><option value={4}>Semicorcheas</option>
                 </select>
                 <span className="font-mono text-lg text-primary">{e.click.beat + 1}</span>
+                <span className="text-xs text-muted-foreground">Salida</span>
+                <OutSelect value={e.outputs.clickOut} channels={e.outputs.channels} onChange={(v) => { engine.setClickOutput(v); localStorage.setItem("wcmp.clickOut", v); }} />
               </div>
             </div>
             <div className="space-y-2 rounded-lg border border-border bg-card p-3 text-sm">
@@ -186,6 +190,40 @@ function Mixer() {
           {can("edit") && <Button onClick={saveMix}>Guardar mezcla</Button>}
         </>
       )}
+    </div>
+  );
+}
+
+function OutSelect({ value, channels, onChange }: { value: string; channels: number; onChange: (v: string) => void }) {
+  const opts: [string, string][] = [["main", "Master 1-2"]];
+  for (let i = 1; i < channels; i += 2) opts.push([`st:${i}`, `Estéreo ${i}-${i + 1}`]);
+  for (let i = 1; i <= channels; i++) opts.push([`ch:${i}`, `Mono ${i}`]);
+  return (
+    <select className="w-full rounded border border-input bg-background px-1 py-0.5 text-[11px]" value={value} onChange={(ev) => onChange(ev.target.value)} title="Salida física">
+      {opts.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+    </select>
+  );
+}
+
+function OutputDevice({ channels, sinkId }: { channels: number; sinkId: string }) {
+  const [devs, setDevs] = useState<{ id: string; name: string }[]>([]);
+  useEffect(() => {
+    const saved = localStorage.getItem("wcmp.clickOut");
+    if (saved) engine.setClickOutput(saved);
+  }, []);
+  const pick = async (id: string) => {
+    try { await engine.setOutputDevice(id); localStorage.setItem("wcmp.sink", id); toast.success("Interfaz seleccionada"); }
+    catch (err) { toast.error((err as Error).message); }
+  };
+  return (
+    <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-card p-3 text-sm">
+      <span className="font-mono text-xs uppercase text-amber">Interfaz de audio</span>
+      <select className="min-w-56 rounded border border-input bg-background px-2 py-1" value={sinkId} onFocus={async () => !devs.length && setDevs(await engine.listOutputDevices())} onChange={(ev) => pick(ev.target.value)}>
+        <option value="">Predeterminada del sistema</option>
+        {devs.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
+      </select>
+      <span className="font-mono text-xs text-muted-foreground">{channels} salidas detectadas</span>
+      {channels <= 2 && <span className="text-xs text-muted-foreground">Si tu interfaz tiene más salidas y solo ves 2, el navegador la está limitando; en la app de escritorio verás todas.</span>}
     </div>
   );
 }
