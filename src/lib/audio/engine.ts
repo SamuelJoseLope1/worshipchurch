@@ -394,6 +394,15 @@ class AudioEngine {
     this.nodes.forEach((n) => n.src?.playbackRate.setValueAtTime(this.rate, this.ctx!.currentTime));
   }
 
+  /** Downsampled peaks for waveform drawing. */
+  peaks(id: string, n: number): Float32Array | null {
+    const b = this.nodes.get(id)?.buffer;
+    if (!b) return null;
+    const d = b.getChannelData(0), step = Math.max(1, Math.floor(d.length / n)), out = new Float32Array(n);
+    for (let i = 0; i < n; i++) { let m = 0; for (let j = i * step, e = Math.min(d.length, j + step); j < e; j += 16) m = Math.max(m, Math.abs(d[j]!)); out[i] = m; }
+    return out;
+  }
+
   setTimeSig(sig: string) { this.set({ timeSig: sig }); }
 
   /* ------------------------------ clock ------------------------------ */
