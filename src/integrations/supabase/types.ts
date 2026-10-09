@@ -314,6 +314,7 @@ export type Database = {
           lyrics: string
           markers: Json
           org_id: string
+          shared: boolean
           song_key: string
           tags: string[]
           time_signature: string
@@ -338,6 +339,7 @@ export type Database = {
           lyrics?: string
           markers?: Json
           org_id: string
+          shared?: boolean
           song_key?: string
           tags?: string[]
           time_signature?: string
@@ -362,6 +364,7 @@ export type Database = {
           lyrics?: string
           markers?: Json
           org_id?: string
+          shared?: boolean
           song_key?: string
           tags?: string[]
           time_signature?: string
