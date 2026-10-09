@@ -140,6 +140,10 @@ function Mixer() {
           </div>
 
           <OutputDevice channels={e.outputs.channels} sinkId={e.outputs.sinkId} />
+          <LyricsPanel lyrics={song?.lyrics ?? ""} />
+          {can("edit") && song && (
+            <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={!!(song as { shared?: boolean }).shared} onChange={async (ev) => { await supabase.from("songs").update({ shared: ev.target.checked }).eq("id", song.id); inv("songs"); toast.success(ev.target.checked ? "Publicada en la Nube" : "Retirada de la Nube"); }} />Compartir en la Nube de multitracks</label>
+          )}
           <div className="flex gap-2 overflow-x-auto pb-2">
             {e.stems.map((s) => (
               <div key={s.id} className="flex w-24 shrink-0 flex-col items-center gap-2 rounded-lg border border-border bg-card p-2">
@@ -224,6 +228,28 @@ function OutputDevice({ channels, sinkId }: { channels: number; sinkId: string }
       </select>
       <span className="font-mono text-xs text-muted-foreground">{channels} salidas detectadas</span>
       {channels <= 2 && <span className="text-xs text-muted-foreground">Si tu interfaz tiene más salidas y solo ves 2, el navegador la está limitando; en la app de escritorio verás todas.</span>}
+    </div>
+  );
+}
+
+const CHORD = /^[A-G][#b]?(m|maj|min|dim|aug|sus|add)?\d*(\/[A-G][#b]?)?$/;
+function LyricsPanel({ lyrics }: { lyrics: string }) {
+  const [show, setShow] = useState(() => typeof localStorage === "undefined" || localStorage.getItem("showChords") !== "0");
+  if (!lyrics.trim()) return null;
+  const text = show ? lyrics : lyrics
+    .replace(/\[[^\]]*\]/g, "")
+    .split("\n")
+    .filter((l) => { const t = l.trim().split(/\s+/).filter(Boolean); return !(t.length && t.every((w) => CHORD.test(w))); })
+    .join("\n");
+  return (
+    <div className="rounded-lg border border-border bg-card p-3">
+      <div className="mb-2 flex items-center justify-between">
+        <span className="font-mono text-xs text-muted-foreground">LETRA</span>
+        <Button size="sm" variant={show ? "default" : "outline"} onClick={() => { const v = !show; setShow(v); localStorage.setItem("showChords", v ? "1" : "0"); }}>
+          {show ? "Ocultar acordes" : "Ver acordes"}
+        </Button>
+      </div>
+      <pre className="max-h-80 overflow-auto whitespace-pre-wrap font-mono text-sm">{text}</pre>
     </div>
   );
 }

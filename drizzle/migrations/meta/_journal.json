@@ -8,6 +8,13 @@
       "when": 1791081686733,
       "tag": "0000_migration",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791552691489,
+      "tag": "0001_cloud_shared_songs",
+      "breakpoints": true
     }
   ]
 }
