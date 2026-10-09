@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { fetchChordPage } from "@/lib/import.functions";
+import { chordsOverLyricsToBracket } from "@/lib/chordImport";
 
 export const Route = createFileRoute("/_authenticated/songs")({
   head: () => ({
@@ -37,11 +39,35 @@ function Songs() {
     inv("songs"); setSel(data.id);
   };
 
+  const [imp, setImp] = useState(false);
+  const [src, setSrc] = useState("");
+  const doImport = async () => {
+    try {
+      let title = "Canción importada", body = src;
+      if (/^https?:\/\//.test(src.trim())) {
+        const r = await fetchChordPage({ data: { url: src.trim() } });
+        title = r.title || title; body = r.body;
+      }
+      const lyrics = chordsOverLyricsToBracket(body);
+      const first = lyrics.match(/\[([A-G][#b]?m?)/)?.[1] ?? "G";
+      const { data, error } = await supabase.from("songs").insert({ org_id: orgId!, title, lyrics, song_key: first.replace(/m$/, ""), bpm: 72 }).select().single();
+      if (error) throw error;
+      toast.success("Importada"); setImp(false); setSrc(""); inv("songs"); setSel(data.id);
+    } catch (e) { toast.error((e as Error).message); }
+  };
+
   return (
     <div className="grid gap-6 md:grid-cols-[280px_1fr]">
       <aside className="space-y-3">
         <Input placeholder="Buscar…" value={q} onChange={(e) => setQ(e.target.value)} />
         {can("edit") && <Button className="w-full" onClick={create}>+ Nueva canción</Button>}
+        {can("edit") && <Button className="w-full" variant="outline" onClick={() => setImp(!imp)}>Importar acordes</Button>}
+        {imp && (
+          <div className="space-y-2 rounded-md border border-border bg-card p-2">
+            <Textarea className="min-h-[120px] font-mono text-xs" placeholder="Pega el enlace (LaCuerda, CifraClub, Ultimate Guitar…) o el texto con acordes encima de la letra" value={src} onChange={(e) => setSrc(e.target.value)} />
+            <Button className="w-full" size="sm" onClick={doImport}>Importar</Button>
+          </div>
+        )}
         <div className="space-y-1">
           {list.map((s) => (
             <button key={s.id} onClick={() => setSel(s.id)} className={`w-full rounded-md border px-3 py-2 text-left ${sel === s.id ? "border-primary bg-secondary" : "border-border bg-card"}`}>
