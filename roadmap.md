@@ -9,3 +9,4 @@
 - [ ] Broadcast híbrido, grabación, overlays
 - [ ] Ollama local, SuperAdmin
 - [x] Editor DAW (formas de onda, marcadores, loop)
+- [x] Importar acordes/letra (enlace o texto pegado)
