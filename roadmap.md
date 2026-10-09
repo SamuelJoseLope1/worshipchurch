@@ -10,3 +10,5 @@
 - [ ] Ollama local, SuperAdmin
 - [x] Editor DAW (formas de onda, marcadores, loop)
 - [x] Importar acordes/letra (enlace o texto pegado)
+- [x] Botón ver/ocultar acordes en mezclador
+- [x] Nube de multitracks compartidos
