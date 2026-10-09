@@ -231,3 +231,25 @@ function OutputDevice({ channels, sinkId }: { channels: number; sinkId: string }
     </div>
   );
 }
+
+const CHORD = /^[A-G][#b]?(m|maj|min|dim|aug|sus|add)?\d*(\/[A-G][#b]?)?$/;
+function LyricsPanel({ lyrics }: { lyrics: string }) {
+  const [show, setShow] = useState(() => typeof localStorage === "undefined" || localStorage.getItem("showChords") !== "0");
+  if (!lyrics.trim()) return null;
+  const text = show ? lyrics : lyrics
+    .replace(/\[[^\]]*\]/g, "")
+    .split("\n")
+    .filter((l) => { const t = l.trim().split(/\s+/).filter(Boolean); return !(t.length && t.every((w) => CHORD.test(w))); })
+    .join("\n");
+  return (
+    <div className="rounded-lg border border-border bg-card p-3">
+      <div className="mb-2 flex items-center justify-between">
+        <span className="font-mono text-xs text-muted-foreground">LETRA</span>
+        <Button size="sm" variant={show ? "default" : "outline"} onClick={() => { const v = !show; setShow(v); localStorage.setItem("showChords", v ? "1" : "0"); }}>
+          {show ? "Ocultar acordes" : "Ver acordes"}
+        </Button>
+      </div>
+      <pre className="max-h-80 overflow-auto whitespace-pre-wrap font-mono text-sm">{text}</pre>
+    </div>
+  );
+}
