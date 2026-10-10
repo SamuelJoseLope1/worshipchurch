@@ -60,15 +60,15 @@ function Cloud() {
   const bulk = async (files: { path: string; blob: Blob }[]) => {
     if (!orgId) return;
     const audio = files.filter((f) => AUDIO_EXT.test(f.path) && !f.path.includes("__MACOSX"));
-    if (!audio.length) return toast.error("No se encontraron archivos de audio");
+    if (!audio.length) { toast.error("No se encontraron archivos de audio"); return; }
     const parts = audio.map((f) => f.path.split("/").filter(Boolean));
-    const strip = parts.every((p) => p.length > 2 && p[0] === parts[0][0]) ? 1 : 0;
+    const strip = parts.every((p) => p.length > 2 && p[0] === parts[0]?.[0]) ? 1 : 0;
     const groups = new Map<string, { name: string; blob: Blob }[]>();
     audio.forEach((f, i) => {
       const p = parts[i].slice(strip);
-      const song = p.length > 1 ? p[0] : "Sin carpeta";
+      const song = (p.length > 1 ? p[0] : undefined) ?? "Sin carpeta";
       if (!groups.has(song)) groups.set(song, []);
-      groups.get(song)!.push({ name: p[p.length - 1], blob: f.blob });
+      groups.get(song)!.push({ name: p[p.length - 1] ?? "pista", blob: f.blob });
     });
     let n = 0;
     for (const [title, tracks] of groups) {
