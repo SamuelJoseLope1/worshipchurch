@@ -35,6 +35,9 @@ const NAV = [
   { to: "/mixer", label: "Mezclador" },
   { to: "/daw", label: "Editor DAW" },
   { to: "/cloud", label: "Nube" },
+  { to: "/present", label: "Proyección" },
+  { to: "/remote", label: "Remoto" },
+  { to: "/admin", label: "Admin" },
 ] as const;
 
 function Shell() {
