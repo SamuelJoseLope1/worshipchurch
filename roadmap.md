@@ -12,3 +12,4 @@
 - [x] Importar acordes/letra (enlace o texto pegado)
 - [x] Botón ver/ocultar acordes en mezclador
 - [x] Nube de multitracks compartidos
+- [x] Nube: subida masiva por ZIP o carpeta (cada subcarpeta = canción)
