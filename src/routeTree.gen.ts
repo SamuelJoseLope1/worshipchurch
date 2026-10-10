@@ -12,11 +12,15 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as DisplayRouteImport } from './routes/display'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedCloudRouteImport } from './routes/_authenticated/cloud'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedDawRouteImport } from './routes/_authenticated/daw'
 import { Route as AuthenticatedMixerRouteImport } from './routes/_authenticated/mixer'
+import { Route as AuthenticatedPresentRouteImport } from './routes/_authenticated/present'
+import { Route as AuthenticatedRemoteRouteImport } from './routes/_authenticated/remote'
 import { Route as AuthenticatedSetlistsRouteImport } from './routes/_authenticated/setlists'
 import { Route as AuthenticatedSongsRouteImport } from './routes/_authenticated/songs'
 
@@ -34,10 +38,20 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DisplayRoute = DisplayRouteImport.update({
+  id: '/display',
+  path: '/display',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedCloudRoute = AuthenticatedCloudRouteImport.update({
   id: '/cloud',
@@ -59,6 +73,16 @@ const AuthenticatedMixerRoute = AuthenticatedMixerRouteImport.update({
   path: '/mixer',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedPresentRoute = AuthenticatedPresentRouteImport.update({
+  id: '/present',
+  path: '/present',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedRemoteRoute = AuthenticatedRemoteRouteImport.update({
+  id: '/remote',
+  path: '/remote',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedSetlistsRoute = AuthenticatedSetlistsRouteImport.update({
   id: '/setlists',
   path: '/setlists',
@@ -73,22 +97,30 @@ const AuthenticatedSongsRoute = AuthenticatedSongsRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/display': typeof DisplayRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/admin': typeof AuthenticatedAdminRoute
   '/cloud': typeof AuthenticatedCloudRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/daw': typeof AuthenticatedDawRoute
   '/mixer': typeof AuthenticatedMixerRoute
+  '/present': typeof AuthenticatedPresentRoute
+  '/remote': typeof AuthenticatedRemoteRoute
   '/setlists': typeof AuthenticatedSetlistsRoute
   '/songs': typeof AuthenticatedSongsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/display': typeof DisplayRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/admin': typeof AuthenticatedAdminRoute
   '/cloud': typeof AuthenticatedCloudRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/daw': typeof AuthenticatedDawRoute
   '/mixer': typeof AuthenticatedMixerRoute
+  '/present': typeof AuthenticatedPresentRoute
+  '/remote': typeof AuthenticatedRemoteRoute
   '/setlists': typeof AuthenticatedSetlistsRoute
   '/songs': typeof AuthenticatedSongsRoute
 }
@@ -97,11 +129,15 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/display': typeof DisplayRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/cloud': typeof AuthenticatedCloudRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/daw': typeof AuthenticatedDawRoute
   '/_authenticated/mixer': typeof AuthenticatedMixerRoute
+  '/_authenticated/present': typeof AuthenticatedPresentRoute
+  '/_authenticated/remote': typeof AuthenticatedRemoteRoute
   '/_authenticated/setlists': typeof AuthenticatedSetlistsRoute
   '/_authenticated/songs': typeof AuthenticatedSongsRoute
 }
@@ -110,22 +146,30 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/display'
     | '/reset-password'
+    | '/admin'
     | '/cloud'
     | '/dashboard'
     | '/daw'
     | '/mixer'
+    | '/present'
+    | '/remote'
     | '/setlists'
     | '/songs'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
+    | '/display'
     | '/reset-password'
+    | '/admin'
     | '/cloud'
     | '/dashboard'
     | '/daw'
     | '/mixer'
+    | '/present'
+    | '/remote'
     | '/setlists'
     | '/songs'
   id:
@@ -133,11 +177,15 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/display'
     | '/reset-password'
+    | '/_authenticated/admin'
     | '/_authenticated/cloud'
     | '/_authenticated/dashboard'
     | '/_authenticated/daw'
     | '/_authenticated/mixer'
+    | '/_authenticated/present'
+    | '/_authenticated/remote'
     | '/_authenticated/setlists'
     | '/_authenticated/songs'
   fileRoutesById: FileRoutesById
@@ -146,6 +194,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  DisplayRoute: typeof DisplayRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
 }
 
@@ -172,12 +221,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/display': {
+      id: '/display'
+      path: '/display'
+      fullPath: '/display'
+      preLoaderRoute: typeof DisplayRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reset-password': {
       id: '/reset-password'
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/cloud': {
       id: '/_authenticated/cloud'
@@ -207,6 +270,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMixerRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/present': {
+      id: '/_authenticated/present'
+      path: '/present'
+      fullPath: '/present'
+      preLoaderRoute: typeof AuthenticatedPresentRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/remote': {
+      id: '/_authenticated/remote'
+      path: '/remote'
+      fullPath: '/remote'
+      preLoaderRoute: typeof AuthenticatedRemoteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/setlists': {
       id: '/_authenticated/setlists'
       path: '/setlists'
@@ -225,19 +302,25 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedCloudRoute: typeof AuthenticatedCloudRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDawRoute: typeof AuthenticatedDawRoute
   AuthenticatedMixerRoute: typeof AuthenticatedMixerRoute
+  AuthenticatedPresentRoute: typeof AuthenticatedPresentRoute
+  AuthenticatedRemoteRoute: typeof AuthenticatedRemoteRoute
   AuthenticatedSetlistsRoute: typeof AuthenticatedSetlistsRoute
   AuthenticatedSongsRoute: typeof AuthenticatedSongsRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedCloudRoute: AuthenticatedCloudRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDawRoute: AuthenticatedDawRoute,
   AuthenticatedMixerRoute: AuthenticatedMixerRoute,
+  AuthenticatedPresentRoute: AuthenticatedPresentRoute,
+  AuthenticatedRemoteRoute: AuthenticatedRemoteRoute,
   AuthenticatedSetlistsRoute: AuthenticatedSetlistsRoute,
   AuthenticatedSongsRoute: AuthenticatedSongsRoute,
 }
@@ -249,6 +332,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  DisplayRoute: DisplayRoute,
   ResetPasswordRoute: ResetPasswordRoute,
 }
 export const routeTree = rootRouteImport
