@@ -65,7 +65,7 @@ function Cloud() {
     const strip = parts.every((p) => p.length > 2 && p[0] === parts[0]?.[0]) ? 1 : 0;
     const groups = new Map<string, { name: string; blob: Blob }[]>();
     audio.forEach((f, i) => {
-      const p = parts[i].slice(strip);
+      const p = (parts[i] ?? []).slice(strip);
       const song = (p.length > 1 ? p[0] : undefined) ?? "Sin carpeta";
       if (!groups.has(song)) groups.set(song, []);
       groups.get(song)!.push({ name: p[p.length - 1] ?? "pista", blob: f.blob });
@@ -91,7 +91,7 @@ function Cloud() {
 
   const fromZip = async (f: File | undefined) => {
     if (!f) return;
-    if (!/\.zip$/i.test(f.name)) return toast.error("Solo ZIP. Los RAR conviértelos a ZIP o sube la carpeta.");
+    if (!/\.zip$/i.test(f.name)) { toast.error("Solo ZIP. Los RAR conviértelos a ZIP o sube la carpeta."); return; }
     setBusy("Descomprimiendo…");
     const { unzipSync } = await import("fflate");
     const out = unzipSync(new Uint8Array(await f.arrayBuffer()));
