@@ -58,11 +58,11 @@ function Host() {
       onPresence: (l) => setDevices(l.filter((d) => d.role === "remote").length),
       onCommand: (c: RemoteCommand) => {
         const ms = markersRef.current;
-        const pos = engine.snapshot?.()?.position ?? 0;
+        const pos = eRef.current.position;
         if (c.type === "play") engine.play();
         else if (c.type === "pause") engine.pause();
         else if (c.type === "stop") engine.stop();
-        else if (c.type === "tempo") engine.setBpm((engine.snapshot?.()?.bpm ?? 120) + c.delta);
+        else if (c.type === "tempo") engine.setBpm(eRef.current.bpm + c.delta);
         else if (c.type === "jump") { const m = ms.find((x) => x.name === c.section); if (m) engine.seek(m.time); }
         else if (c.type === "nextSection") { const m = ms.find((x) => x.time > pos + 0.1); if (m) engine.seek(m.time); }
         else if (c.type === "prevSection") { const m = [...ms].reverse().find((x) => x.time < pos - 1); engine.seek(m?.time ?? 0); }
@@ -74,6 +74,8 @@ function Host() {
 
   const markersRef = useRef(markers);
   markersRef.current = markers;
+  const eRef = useRef(e);
+  eRef.current = e;
 
   useEffect(() => {
     const st: SessionState = {
