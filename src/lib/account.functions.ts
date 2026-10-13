@@ -4,7 +4,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 const OWNER = "samueljoselopegames@gmail.com";
 const admin = async () => (await import("@/integrations/supabase/client.server")).supabaseAdmin;
 const assertOwner = (claims: Record<string, unknown>) => {
-  if (String(claims.email ?? "").toLowerCase() !== OWNER) throw new Error("Página inexistente");
+  if (String(claims["email"] ?? "").toLowerCase() !== OWNER) throw new Error("Página inexistente");
 };
 
 export const deleteMyAccount = createServerFn({ method: "POST" })
@@ -44,15 +44,15 @@ export const saListUsers = createServerFn({ method: "GET" })
 
 export const saUpdateUser = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { id: string; email?: string; name?: string; password?: string; ban?: boolean; confirm?: boolean }) => d)
+  .inputValidator((d: { id: string; email?: string | undefined; name?: string | undefined; password?: string; ban?: boolean; confirm?: boolean }) => d)
   .handler(async ({ context, data }) => {
     assertOwner(context.claims as Record<string, unknown>);
     const a = await admin();
     const attrs: Record<string, unknown> = {};
-    if (data.email) attrs.email = data.email;
-    if (data.password) { if (data.password.length < 6) throw new Error("Mínimo 6 caracteres"); attrs.password = data.password; }
-    if (data.ban !== undefined) attrs.ban_duration = data.ban ? "876000h" : "none";
-    if (data.confirm) attrs.email_confirm = true;
+    if (data.email) attrs["email"] = data.email;
+    if (data.password) { if (data.password.length < 6) throw new Error("Mínimo 6 caracteres"); attrs["password"] = data.password; }
+    if (data.ban !== undefined) attrs["ban_duration"] = data.ban ? "876000h" : "none";
+    if (data.confirm) attrs["email_confirm"] = true;
     if (Object.keys(attrs).length) {
       const { error } = await a.auth.admin.updateUserById(data.id, attrs);
       if (error) throw new Error(error.message);
