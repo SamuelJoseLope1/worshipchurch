@@ -21,7 +21,9 @@ import { Route as AuthenticatedDawRouteImport } from './routes/_authenticated/da
 import { Route as AuthenticatedMixerRouteImport } from './routes/_authenticated/mixer'
 import { Route as AuthenticatedPresentRouteImport } from './routes/_authenticated/present'
 import { Route as AuthenticatedRemoteRouteImport } from './routes/_authenticated/remote'
+import { Route as AuthenticatedSaRouteImport } from './routes/_authenticated/sa'
 import { Route as AuthenticatedSetlistsRouteImport } from './routes/_authenticated/setlists'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedSongsRouteImport } from './routes/_authenticated/songs'
 
 const IndexRoute = IndexRouteImport.update({
@@ -83,9 +85,19 @@ const AuthenticatedRemoteRoute = AuthenticatedRemoteRouteImport.update({
   path: '/remote',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedSaRoute = AuthenticatedSaRouteImport.update({
+  id: '/sa',
+  path: '/sa',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedSetlistsRoute = AuthenticatedSetlistsRouteImport.update({
   id: '/setlists',
   path: '/setlists',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedSongsRoute = AuthenticatedSongsRouteImport.update({
@@ -106,7 +118,9 @@ export interface FileRoutesByFullPath {
   '/mixer': typeof AuthenticatedMixerRoute
   '/present': typeof AuthenticatedPresentRoute
   '/remote': typeof AuthenticatedRemoteRoute
+  '/sa': typeof AuthenticatedSaRoute
   '/setlists': typeof AuthenticatedSetlistsRoute
+  '/settings': typeof AuthenticatedSettingsRoute
   '/songs': typeof AuthenticatedSongsRoute
 }
 export interface FileRoutesByTo {
@@ -121,7 +135,9 @@ export interface FileRoutesByTo {
   '/mixer': typeof AuthenticatedMixerRoute
   '/present': typeof AuthenticatedPresentRoute
   '/remote': typeof AuthenticatedRemoteRoute
+  '/sa': typeof AuthenticatedSaRoute
   '/setlists': typeof AuthenticatedSetlistsRoute
+  '/settings': typeof AuthenticatedSettingsRoute
   '/songs': typeof AuthenticatedSongsRoute
 }
 export interface FileRoutesById {
@@ -138,7 +154,9 @@ export interface FileRoutesById {
   '/_authenticated/mixer': typeof AuthenticatedMixerRoute
   '/_authenticated/present': typeof AuthenticatedPresentRoute
   '/_authenticated/remote': typeof AuthenticatedRemoteRoute
+  '/_authenticated/sa': typeof AuthenticatedSaRoute
   '/_authenticated/setlists': typeof AuthenticatedSetlistsRoute
+  '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/songs': typeof AuthenticatedSongsRoute
 }
 export interface FileRouteTypes {
@@ -155,7 +173,9 @@ export interface FileRouteTypes {
     | '/mixer'
     | '/present'
     | '/remote'
+    | '/sa'
     | '/setlists'
+    | '/settings'
     | '/songs'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -170,7 +190,9 @@ export interface FileRouteTypes {
     | '/mixer'
     | '/present'
     | '/remote'
+    | '/sa'
     | '/setlists'
+    | '/settings'
     | '/songs'
   id:
     | '__root__'
@@ -186,7 +208,9 @@ export interface FileRouteTypes {
     | '/_authenticated/mixer'
     | '/_authenticated/present'
     | '/_authenticated/remote'
+    | '/_authenticated/sa'
     | '/_authenticated/setlists'
+    | '/_authenticated/settings'
     | '/_authenticated/songs'
   fileRoutesById: FileRoutesById
 }
@@ -284,11 +308,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRemoteRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/sa': {
+      id: '/_authenticated/sa'
+      path: '/sa'
+      fullPath: '/sa'
+      preLoaderRoute: typeof AuthenticatedSaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/setlists': {
       id: '/_authenticated/setlists'
       path: '/setlists'
       fullPath: '/setlists'
       preLoaderRoute: typeof AuthenticatedSetlistsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/songs': {
@@ -309,7 +347,9 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedMixerRoute: typeof AuthenticatedMixerRoute
   AuthenticatedPresentRoute: typeof AuthenticatedPresentRoute
   AuthenticatedRemoteRoute: typeof AuthenticatedRemoteRoute
+  AuthenticatedSaRoute: typeof AuthenticatedSaRoute
   AuthenticatedSetlistsRoute: typeof AuthenticatedSetlistsRoute
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedSongsRoute: typeof AuthenticatedSongsRoute
 }
 
@@ -321,7 +361,9 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedMixerRoute: AuthenticatedMixerRoute,
   AuthenticatedPresentRoute: AuthenticatedPresentRoute,
   AuthenticatedRemoteRoute: AuthenticatedRemoteRoute,
+  AuthenticatedSaRoute: AuthenticatedSaRoute,
   AuthenticatedSetlistsRoute: AuthenticatedSetlistsRoute,
+  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedSongsRoute: AuthenticatedSongsRoute,
 }
 

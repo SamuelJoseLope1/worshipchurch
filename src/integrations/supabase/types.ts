@@ -93,6 +93,38 @@ export type Database = {
           },
         ]
       }
+      org_invites: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          org_id: string
+          role: Database["public"]["Enums"]["org_role"]
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          org_id: string
+          role?: Database["public"]["Enums"]["org_role"]
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          org_id?: string
+          role?: Database["public"]["Enums"]["org_role"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_invites_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       org_presets: {
         Row: {
           created_at: string
@@ -165,18 +197,21 @@ export type Database = {
           created_at: string
           created_by: string
           id: string
+          invite_code: string | null
           name: string
         }
         Insert: {
           created_at?: string
           created_by?: string
           id?: string
+          invite_code?: string | null
           name: string
         }
         Update: {
           created_at?: string
           created_by?: string
           id?: string
+          invite_code?: string | null
           name?: string
         }
         Relationships: []
@@ -461,6 +496,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_my_invites: { Args: never; Returns: number }
       has_org_role: {
         Args: {
           _org: string
@@ -470,6 +506,8 @@ export type Database = {
         Returns: boolean
       }
       is_org_member: { Args: { _org: string; _uid: string }; Returns: boolean }
+      join_org_by_code: { Args: { _code: string }; Returns: string }
+      regen_invite_code: { Args: { _org: string }; Returns: string }
     }
     Enums: {
       org_role:
