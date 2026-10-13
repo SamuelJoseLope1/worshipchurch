@@ -42,7 +42,7 @@ function Console() {
   );
 }
 
-const Stat = ({ l, v }: { l: string; v?: number }) => (
+const Stat = ({ l, v }: { l: string; v?: number | undefined }) => (
   <div className="rounded-lg border border-border bg-card p-3"><div className="font-mono text-3xl text-cyan">{v ?? "…"}</div><div className="text-xs text-muted-foreground">{l}</div></div>
 );
 

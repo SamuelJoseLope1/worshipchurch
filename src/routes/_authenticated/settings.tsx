@@ -39,7 +39,7 @@ function Settings() {
 
   const join = async () => {
     const { error } = await supabase.rpc("join_org_by_code", { _code: code });
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success("Te uniste a la iglesia"); setCode("");
     qc.invalidateQueries({ queryKey: ["memberships"] });
   };
