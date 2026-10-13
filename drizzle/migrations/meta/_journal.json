@@ -15,6 +15,13 @@
       "when": 1791552691489,
       "tag": "0001_cloud_shared_songs",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791861666957,
+      "tag": "0002_invites_settings",
+      "breakpoints": true
     }
   ]
 }
