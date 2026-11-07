@@ -6,6 +6,7 @@ import { useInvalidate, useOrg } from "@/lib/org";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { canManageService } from "@/lib/mixer-timing";
 
 export const Route = createFileRoute("/_authenticated/setlists")({
   head: () => ({
@@ -14,6 +15,8 @@ export const Route = createFileRoute("/_authenticated/setlists")({
       { name: "description", content: "Planifica las alabanzas de cada culto." },
       { property: "og:title", content: "Setlists — Worship Church Multitrack Player" },
       { property: "og:description", content: "Planifica las alabanzas de cada culto." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Setlists,
@@ -47,13 +50,13 @@ function Setlists() {
           </button>
         ))}
       </aside>
-      {sel ? <Detail id={sel} onDeleted={() => setSel(null)} /> : <p className="text-muted-foreground">Selecciona o crea un setlist.</p>}
+      {sel ? <Detail key={sel} id={sel} onDeleted={() => setSel(null)} /> : <p className="text-muted-foreground">Selecciona o crea un setlist.</p>}
     </div>
   );
 }
 
 function Detail({ id, onDeleted }: { id: string; onDeleted: () => void }) {
-  const { orgId, can } = useOrg();
+  const { orgId, can, role } = useOrg();
   const sl = useSetlist(id);
   const songs = useSongs();
   const inv = useInvalidate();
@@ -76,7 +79,7 @@ function Detail({ id, onDeleted }: { id: string; onDeleted: () => void }) {
     <div className="space-y-4">
       <div className="flex flex-wrap gap-2">
         <Input className="max-w-xs" defaultValue={sl.data.name} disabled={!can("edit")} onBlur={(e) => run(supabase.from("setlists").update({ name: e.target.value }).eq("id", id))} />
-        <Input type="date" className="w-44" defaultValue={sl.data.service_date?.slice(0, 10) ?? ""} disabled={!can("edit")} onChange={(e) => run(supabase.from("setlists").update({ service_date: e.target.value || null }).eq("id", id))} />
+        <label className="text-xs text-muted-foreground">Fecha de servicio / evento<Input aria-label="Fecha de servicio o evento" type="date" className="w-44" value={sl.data.service_date?.slice(0, 10) ?? ""} disabled={!canManageService(role)} onChange={async (e) => { const { error } = await supabase.from("setlists").update({ service_date: e.target.value || null }).eq("id", id).eq("org_id", orgId ?? ""); if (error) { toast.error(error.message); return; } inv("setlists"); toast.success("Fecha de servicio actualizada"); }} /></label>
         {can("delete") && <Button variant="destructive" onClick={async () => { if (confirm("¿Eliminar setlist?")) { await run(supabase.from("setlists").delete().eq("id", id)); onDeleted(); } }}>Eliminar</Button>}
       </div>
       <ol className="space-y-2">

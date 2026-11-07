@@ -75,6 +75,8 @@
   --input: oklch(0.27 0.022 245);
   --ring: var(--cyan);
   --grid-line: color-mix(in oklab, var(--cyan) 6%, transparent);
+  --fader-metal: linear-gradient(to bottom, var(--muted-foreground), var(--panel2) 45%, var(--panel) 55%, var(--muted-foreground));
+  --fader-shadow: 0 2px 4px var(--background);
 }
 
 @layer base {
@@ -85,6 +87,18 @@
     color: var(--color-foreground);
     font-family: var(--font-sans);
   }
+}
+
+.studio-fader-cap {
+  background: var(--fader-metal);
+  box-shadow: var(--fader-shadow);
+}
+.studio-fader-cap::after {
+  content: "";
+  display: block;
+  height: 2px;
+  margin-top: 10px;
+  background: var(--cyan);
 }
 
 @utility console-grid {
