@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { storage, safeName } from "@/lib/services/storage";
 import { AUDIO_EXT, colorFor, detectStemType, groupFor } from "@/lib/stems";
+import { CloudSongTools } from "@/components/CloudSongTools";
+import { isOwnerEmail } from "@/lib/owner";
 
 export const Route = createFileRoute("/_authenticated/cloud")({
   head: () => ({
@@ -23,7 +25,7 @@ export const Route = createFileRoute("/_authenticated/cloud")({
 });
 
 function Cloud() {
-  const { orgId, can } = useOrg();
+  const { orgId, can, email } = useOrg();
   const inv = useInvalidate();
   const [q, setQ] = useState("");
   const [busy, setBusy] = useState("");
@@ -105,7 +107,7 @@ function Cloud() {
         <h1 className="font-mono text-2xl text-amber">Nube de Multitracks</h1>
         <p className="text-sm text-muted-foreground">Sube un ZIP o una carpeta: cada subcarpeta se vuelve una canción con sus pistas, ya publicada en la Nube. Otros la guardan en su iglesia sin volver a subir.</p>
       </div>
-      {can("edit") && (
+      {isOwnerEmail(email) && can("edit") && (
         <div className="flex flex-wrap items-center gap-2">
           <label className="cursor-pointer rounded-md border border-border px-4 py-2 text-sm hover:border-primary">
             Subir ZIP
@@ -123,14 +125,16 @@ function Cloud() {
       {!list.isLoading && !items.length && <p className="text-sm text-muted-foreground">Aún no hay canciones en la Nube.</p>}
       <ul className="space-y-2">
         {items.map((s) => (
-          <li key={s.id} className="flex items-center gap-3 rounded-md border border-border bg-card px-3 py-2">
-            <div className="flex-1">
+          <li key={s.id} className="space-y-3 rounded-md border border-border bg-card px-3 py-3">
+            <div className="flex flex-wrap items-center gap-3"><div className="min-w-0 flex-1">
               <div className="font-semibold">{s.title}</div>
               <div className="font-mono text-xs text-muted-foreground">{s.artist ?? "—"} · {s.song_key} · {Number(s.bpm)} BPM · {(s.stems as unknown as { count: number }[])?.[0]?.count ?? 0} pistas</div>
             </div>
             {s.org_id === orgId ? <span className="text-xs text-cyan">Tuya</span> : can("edit") && (
               <Button size="sm" disabled={busy === s.id} onClick={() => save(s.id)}>{busy === s.id ? "Guardando…" : "Guardar en mi iglesia"}</Button>
             )}
+            </div>
+            <CloudSongTools song={s} onChanged={() => void list.refetch()} />
           </li>
         ))}
       </ul>

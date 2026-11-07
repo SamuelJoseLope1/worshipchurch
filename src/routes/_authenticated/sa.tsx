@@ -7,9 +7,11 @@ import { isOwnerEmail } from "@/lib/owner";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { saDeleteUser, saListUsers, saResetLink, saUpdateUser } from "@/lib/account.functions";
+import { supabase } from "@/integrations/supabase/client";
+import { CloudSongTools } from "@/components/CloudSongTools";
 
 export const Route = createFileRoute("/_authenticated/sa")({
-  head: () => ({ meta: [{ title: "Worship Church" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [{ title: "Consola privada — Worship Church" }, { name: "robots", content: "noindex" }, { name: "description", content: "Administración privada de Worship Church." }, { property: "og:title", content: "Consola privada — Worship Church" }, { property: "og:description", content: "Administración privada de Worship Church." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }),
   component: Gate,
 });
 
@@ -38,8 +40,23 @@ function Console() {
       {q.isLoading && <p className="text-sm text-muted-foreground">Cargando…</p>}
       {q.error && <p className="text-sm text-destructive">{(q.error as Error).message}</p>}
       <ul className="space-y-2">{users.map((u) => <Row key={u.id} u={u} reload={() => q.refetch()} />)}</ul>
+      <CloudCatalog />
     </div>
   );
+}
+
+function CloudCatalog() {
+  const q = useQuery({ queryKey: ["cloud"], queryFn: async () => {
+    const { data, error } = await supabase.from("songs").select("*").eq("shared", true).order("title");
+    if (error) throw error;
+    return data;
+  } });
+  return <section className="space-y-3 border-t border-border pt-5">
+    <h2 className="font-mono text-lg text-cyan">Canciones de la nube</h2>
+    {q.error && <p className="text-destructive">No se pudo cargar la biblioteca.</p>}
+    {q.isPending && <p className="text-muted-foreground">Cargando…</p>}
+    {q.data?.map(song => <div key={song.id} className="space-y-2 border-b border-border pb-3"><h3 className="font-semibold">{song.title}</h3><CloudSongTools song={song} onChanged={() => void q.refetch()} /></div>)}
+  </section>;
 }
 
 const Stat = ({ l, v }: { l: string; v?: number | undefined }) => (

@@ -9,6 +9,8 @@ import { AUDIO_EXT, colorFor, detectStemType, groupFor, STEM_COLOR_BG } from "@/
 import { formatTime, KEYS } from "@/lib/music";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { StudioFader } from "@/components/mixer/StudioFader";
+import { ArrangementRibbon } from "@/components/mixer/ArrangementRibbon";
 
 export const Route = createFileRoute("/_authenticated/mixer")({
   head: () => ({
@@ -17,6 +19,8 @@ export const Route = createFileRoute("/_authenticated/mixer")({
       { name: "description", content: "Carga multitracks y mezcla cada pista en vivo." },
       { property: "og:title", content: "Pistas y Mezclador — Worship Church Multitrack Player" },
       { property: "og:description", content: "Carga multitracks y mezcla cada pista en vivo." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Mixer,
@@ -139,6 +143,7 @@ function Mixer() {
             </div>
           </div>
 
+          {song && <ArrangementRibbon key={song.id} song={song} editable={can("edit")} />}
           <OutputDevice channels={e.outputs.channels} sinkId={e.outputs.sinkId} />
           <LyricsPanel lyrics={song?.lyrics ?? ""} />
           {can("edit") && song && (
@@ -150,7 +155,7 @@ function Mixer() {
                 <div className="h-24 w-2 overflow-hidden rounded bg-secondary">
                   <div className={`w-full ${STEM_COLOR_BG[s.color] ?? "bg-cyan"}`} style={{ height: `${Math.min(100, s.level * 100)}%`, marginTop: `${100 - Math.min(100, s.level * 100)}%` }} />
                 </div>
-                <input type="range" min={0} max={1} step={0.01} value={s.volume} onChange={(ev) => engine.setStem(s.id, { volume: Number(ev.target.value) })} className="h-28 [writing-mode:vertical-lr] [direction:rtl]" />
+                <StudioFader value={s.volume} onChange={volume => engine.setStem(s.id, { volume })} label={`Volumen ${s.name}`} />
                 <input type="range" min={-1} max={1} step={0.05} value={s.pan} onChange={(ev) => engine.setStem(s.id, { pan: Number(ev.target.value) })} className="w-full" title="Paneo" />
                 <div className="flex gap-1">
                   <button className={`rounded px-2 py-1 text-xs font-bold ${s.muted ? "bg-destructive text-destructive-foreground" : "bg-secondary"}`} onClick={() => engine.setStem(s.id, { muted: !s.muted })}>M</button>
@@ -162,7 +167,7 @@ function Mixer() {
               </div>
             ))}
             <div className="flex w-24 shrink-0 flex-col items-center gap-2 rounded-lg border border-primary bg-card p-2">
-              <input type="range" min={0} max={1} step={0.01} value={e.master} onChange={(ev) => engine.setMaster(Number(ev.target.value))} className="mt-24 h-28 [writing-mode:vertical-lr] [direction:rtl]" />
+              <StudioFader value={e.master} onChange={value => engine.setMaster(value)} label="Volumen master" className="mt-24" />
               <div className="text-xs font-bold text-primary">MASTER</div>
             </div>
           </div>
