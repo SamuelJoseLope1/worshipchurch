@@ -10,6 +10,7 @@ import { formatTime, KEYS } from "@/lib/music";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { StudioFader } from "@/components/mixer/StudioFader";
+import { ChannelStrip } from "@/components/mixer/ChannelStrip";
 import { ArrangementRibbon } from "@/components/mixer/ArrangementRibbon";
 
 export const Route = createFileRoute("/_authenticated/mixer")({
@@ -130,17 +131,20 @@ function Mixer() {
 
       {loaded && (
         <>
-          <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-card p-3">
-            <Button size="lg" onClick={() => (e.playing ? engine.pause() : engine.play())}>{e.playing ? "Pausa" : "Play"}</Button>
-            <Button size="lg" variant="outline" onClick={() => engine.stop()}>Stop</Button>
-            <span className="font-mono text-2xl text-amber">{formatTime(e.position)} / {formatTime(e.duration)}</span>
-            <input type="range" className="min-w-40 flex-1" min={0} max={e.duration || 1} step={0.1} value={e.position} onChange={(ev) => engine.seek(Number(ev.target.value))} />
-            <div className="flex items-center gap-1 font-mono text-sm">
-              <Button size="sm" variant="outline" onClick={() => engine.setBpm(e.bpm - 1)}>−</Button>
-              <span className="w-20 text-center">{e.bpm} BPM</span>
-              <Button size="sm" variant="outline" onClick={() => engine.setBpm(e.bpm + 1)}>+</Button>
-              <label className="ml-2 flex items-center gap-1 text-xs"><input type="checkbox" checked={e.varispeed} onChange={(ev) => engine.setVarispeed(ev.target.checked)} />Velocidad pistas</label>
+          <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-card p-2">
+            <div className="flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 font-mono text-sm">
+              <button className="px-1" onClick={() => engine.setBpm(e.bpm - 1)}>−</button>
+              <span className="w-16 text-center">{e.bpm} BPM</span>
+              <button className="px-1" onClick={() => engine.setBpm(e.bpm + 1)}>+</button>
+              <span className="ml-1 text-xs text-muted-foreground">{song?.time_signature}</span>
             </div>
+            <span className="rounded-md border border-border bg-background px-3 py-1 font-mono text-lg text-amber">{formatTime(e.position)} / {formatTime(e.duration)}</span>
+            <div className="mx-auto flex gap-1">
+              <Button variant="outline" onClick={() => engine.seek(0)}>⏮ Inicio</Button>
+              <Button onClick={() => (e.playing ? engine.pause() : engine.play())}>{e.playing ? "❚❚ Pausa" : "▶ Reproducir"}</Button>
+              <Button variant="outline" onClick={() => engine.stop()}>■ Stop</Button>
+            </div>
+            <label className="flex items-center gap-1 text-xs"><input type="checkbox" checked={e.varispeed} onChange={(ev) => engine.setVarispeed(ev.target.checked)} />Velocidad pistas</label>
           </div>
 
           {song && <ArrangementRibbon key={song.id} song={song} editable={can("edit")} />}
@@ -149,27 +153,22 @@ function Mixer() {
           {can("edit") && song && (
             <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={!!(song as { shared?: boolean }).shared} onChange={async (ev) => { await supabase.from("songs").update({ shared: ev.target.checked }).eq("id", song.id); inv("songs"); toast.success(ev.target.checked ? "Publicada en la Nube" : "Retirada de la Nube"); }} />Compartir en la Nube de multitracks</label>
           )}
-          <div className="flex gap-2 overflow-x-auto pb-2">
+          <div className="flex overflow-x-auto rounded-lg border border-border bg-card">
             {e.stems.map((s) => (
-              <div key={s.id} className="flex w-24 shrink-0 flex-col items-center gap-2 rounded-lg border border-border bg-card p-2">
-                <div className="h-24 w-2 overflow-hidden rounded bg-secondary">
-                  <div className={`w-full ${STEM_COLOR_BG[s.color] ?? "bg-cyan"}`} style={{ height: `${Math.min(100, s.level * 100)}%`, marginTop: `${100 - Math.min(100, s.level * 100)}%` }} />
-                </div>
-                <StudioFader value={s.volume} onChange={volume => engine.setStem(s.id, { volume })} label={`Volumen ${s.name}`} />
-                <input type="range" min={-1} max={1} step={0.05} value={s.pan} onChange={(ev) => engine.setStem(s.id, { pan: Number(ev.target.value) })} className="w-full" title="Paneo" />
-                <div className="flex gap-1">
-                  <button className={`rounded px-2 py-1 text-xs font-bold ${s.muted ? "bg-destructive text-destructive-foreground" : "bg-secondary"}`} onClick={() => engine.setStem(s.id, { muted: !s.muted })}>M</button>
-                  <button className={`rounded px-2 py-1 text-xs font-bold ${s.solo ? "bg-amber text-background" : "bg-secondary"}`} onClick={() => engine.setStem(s.id, { solo: !s.solo })}>S</button>
-                </div>
-                <OutSelect value={s.output ?? "main"} channels={e.outputs.channels} onChange={(v) => engine.setStemOutput(s.id, v)} />
-                <div className="w-full truncate text-center text-xs" title={s.name}>{s.name}</div>
-                {s.status !== "ready" && <div className="text-[10px] text-amber">{s.status === "loading" ? "Cargando…" : s.error ?? "Sin archivo"}</div>}
-              </div>
+              <ChannelStrip key={s.id} name={s.name} volume={s.volume} pan={s.pan} level={s.level} muted={s.muted} solo={s.solo}
+                accent={STEM_COLOR_BG[s.color] ?? "bg-cyan"}
+                onVolume={(volume) => engine.setStem(s.id, { volume })} onPan={(pan) => engine.setStem(s.id, { pan })}
+                onMute={() => engine.setStem(s.id, { muted: !s.muted })} onSolo={() => engine.setStem(s.id, { solo: !s.solo })}
+                footer={<>
+                  <OutSelect value={s.output ?? "main"} channels={e.outputs.channels} onChange={(v) => engine.setStemOutput(s.id, v)} />
+                  {s.status !== "ready" && <div className="text-[10px] text-amber">{s.status === "loading" ? "Cargando…" : s.error ?? "Sin archivo"}</div>}
+                </>} />
             ))}
-            <div className="flex w-24 shrink-0 flex-col items-center gap-2 rounded-lg border border-primary bg-card p-2">
-              <StudioFader value={e.master} onChange={value => engine.setMaster(value)} label="Volumen master" className="mt-24" />
-              <div className="text-xs font-bold text-primary">MASTER</div>
+            <div className="ml-auto flex flex-col justify-center gap-2 border-l border-border px-2">
+              <Button size="sm" variant="outline" onClick={() => (e.pad.playing ? engine.padStop() : engine.padPlay())}>{e.pad.playing ? "Pad ■" : "Pad ▶"}</Button>
+              <Button size="sm" variant={e.click.enabled ? "default" : "outline"} onClick={() => engine.setClick({ enabled: !e.click.enabled })}>Click</Button>
             </div>
+            <ChannelStrip master name="MASTER" volume={e.master} onVolume={(v) => engine.setMaster(v)} />
           </div>
 
           <div className="grid gap-3 md:grid-cols-2">
