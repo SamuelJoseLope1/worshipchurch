@@ -17,6 +17,7 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedCloudRouteImport } from './routes/_authenticated/cloud'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedLyricsRouteImport } from './routes/_authenticated/lyrics'
 import { Route as AuthenticatedMixerRouteImport } from './routes/_authenticated/mixer'
 import { Route as AuthenticatedPresentRouteImport } from './routes/_authenticated/present'
 import { Route as AuthenticatedRemoteRouteImport } from './routes/_authenticated/remote'
@@ -64,6 +65,11 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedLyricsRoute = AuthenticatedLyricsRouteImport.update({
+  id: '/lyrics',
+  path: '/lyrics',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedMixerRoute = AuthenticatedMixerRouteImport.update({
   id: '/mixer',
   path: '/mixer',
@@ -108,6 +114,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRoute
   '/cloud': typeof AuthenticatedCloudRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/lyrics': typeof AuthenticatedLyricsRoute
   '/mixer': typeof AuthenticatedMixerRoute
   '/present': typeof AuthenticatedPresentRoute
   '/remote': typeof AuthenticatedRemoteRoute
@@ -124,6 +131,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminRoute
   '/cloud': typeof AuthenticatedCloudRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/lyrics': typeof AuthenticatedLyricsRoute
   '/mixer': typeof AuthenticatedMixerRoute
   '/present': typeof AuthenticatedPresentRoute
   '/remote': typeof AuthenticatedRemoteRoute
@@ -142,6 +150,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/cloud': typeof AuthenticatedCloudRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/lyrics': typeof AuthenticatedLyricsRoute
   '/_authenticated/mixer': typeof AuthenticatedMixerRoute
   '/_authenticated/present': typeof AuthenticatedPresentRoute
   '/_authenticated/remote': typeof AuthenticatedRemoteRoute
@@ -160,6 +169,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/cloud'
     | '/dashboard'
+    | '/lyrics'
     | '/mixer'
     | '/present'
     | '/remote'
@@ -176,6 +186,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/cloud'
     | '/dashboard'
+    | '/lyrics'
     | '/mixer'
     | '/present'
     | '/remote'
@@ -193,6 +204,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/cloud'
     | '/_authenticated/dashboard'
+    | '/_authenticated/lyrics'
     | '/_authenticated/mixer'
     | '/_authenticated/present'
     | '/_authenticated/remote'
@@ -268,6 +280,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/lyrics': {
+      id: '/_authenticated/lyrics'
+      path: '/lyrics'
+      fullPath: '/lyrics'
+      preLoaderRoute: typeof AuthenticatedLyricsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/mixer': {
       id: '/_authenticated/mixer'
       path: '/mixer'
@@ -324,6 +343,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedCloudRoute: typeof AuthenticatedCloudRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedLyricsRoute: typeof AuthenticatedLyricsRoute
   AuthenticatedMixerRoute: typeof AuthenticatedMixerRoute
   AuthenticatedPresentRoute: typeof AuthenticatedPresentRoute
   AuthenticatedRemoteRoute: typeof AuthenticatedRemoteRoute
@@ -337,6 +357,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedCloudRoute: AuthenticatedCloudRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedLyricsRoute: AuthenticatedLyricsRoute,
   AuthenticatedMixerRoute: AuthenticatedMixerRoute,
   AuthenticatedPresentRoute: AuthenticatedPresentRoute,
   AuthenticatedRemoteRoute: AuthenticatedRemoteRoute,

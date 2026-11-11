@@ -75,7 +75,7 @@
   --input: oklch(0.27 0.022 245);
   --ring: var(--cyan);
   --grid-line: color-mix(in oklab, var(--cyan) 6%, transparent);
-  --fader-metal: linear-gradient(to bottom, var(--muted-foreground), var(--panel2) 45%, var(--panel) 55%, var(--muted-foreground));
+  --fader-metal: linear-gradient(to bottom, var(--muted-foreground), var(--background) 38%, var(--panel) 60%, var(--muted-foreground));
   --fader-shadow: 0 2px 4px var(--background);
 }
 
@@ -97,7 +97,7 @@
   content: "";
   display: block;
   height: 2px;
-  margin-top: 10px;
+  margin: 6px 3px 0;
   background: var(--cyan);
 }
 
@@ -134,3 +134,6 @@
   color: var(--color-muted-foreground);
   white-space: nowrap;
 }
+
+.studio-pan-cap { background: var(--fader-metal); box-shadow: var(--fader-shadow); }
+.studio-pan-cap::after { content: ""; display: block; height: 7px; width: 2px; margin: 1px auto; background: var(--cyan); }

@@ -35,16 +35,16 @@ export function ArrangementRibbon({ song, editable }: { song: SongRow; editable:
     const c = canvas.current;
     if (!c) return;
     const draw = () => {
-      c.width = Math.min(width, 16000); c.height = 72;
+      c.width = Math.min(width, 16000); c.height = 144;
       const g = c.getContext('2d'); if (!g) return;
       const peaks = peakStem ? engine.peaks(peakStem.id, c.width) : null;
-      g.clearRect(0, 0, c.width, 72); g.fillStyle = getComputedStyle(c).color;
-      if (peaks) peaks.forEach((peak, i) => { const height = peak * 68; g.fillRect(i, 36 - height / 2, 1, height); });
+      g.clearRect(0, 0, c.width, 144); g.fillStyle = getComputedStyle(c).color;
+      if (peaks) peaks.forEach((peak, i) => { const height = peak * 136; g.fillRect(i, 72 - height / 2, 1, height); });
     };
     draw();
     const observer = new ResizeObserver(draw); observer.observe(c);
     return () => observer.disconnect();
-  }, [peakStem?.id, width]);
+  }, [peakStem?.id, e.duration, width]);
   useEffect(() => {
     const el = scroller.current; if (!el || !e.playing) return;
     const x = e.position / duration * width;
@@ -78,8 +78,8 @@ export function ArrangementRibbon({ song, editable }: { song: SongRow; editable:
         <div className="relative h-8 overflow-hidden">
           {sections.map((m, i) => <Button key={m.id} variant="ghost" title={`${m.name}: compás ${musicalPosition(m.time, bpm, song.time_signature).bar}`} className={`absolute top-0 h-8 justify-start overflow-hidden rounded-none border-l border-border px-2 text-xs ${SECTION_COLORS[m.name] || 'bg-cyan/20 text-cyan'}`} style={{ left: m.time / duration * width, width: Math.max(1, ((sections[i + 1]?.time ?? duration) - m.time) / duration * width) }} onClick={() => engine.seek(m.time)}>{m.name}</Button>)}
         </div>
-        <div role="slider" tabIndex={0} aria-label="Posición en la forma de onda" aria-valuemin={0} aria-valuemax={duration} aria-valuenow={e.position} className="h-18 cursor-crosshair" onKeyDown={ev => { if (ev.key === 'ArrowRight') engine.seek(Math.min(duration, e.position + secondsPerBar)); if (ev.key === 'ArrowLeft') engine.seek(Math.max(0, e.position - secondsPerBar)); }} onClick={ev => { const r = ev.currentTarget.getBoundingClientRect(); engine.seek((ev.clientX - r.left) / width * duration); }}>
-          <canvas ref={canvas} className="h-18 w-full text-cyan" />
+        <div role="slider" tabIndex={0} aria-label="Posición en la forma de onda" aria-valuemin={0} aria-valuemax={duration} aria-valuenow={e.position} className="h-36 cursor-crosshair" onKeyDown={ev => { if (ev.key === 'ArrowRight') engine.seek(Math.min(duration, e.position + secondsPerBar)); if (ev.key === 'ArrowLeft') engine.seek(Math.max(0, e.position - secondsPerBar)); }} onClick={ev => { const r = ev.currentTarget.getBoundingClientRect(); engine.seek((ev.clientX - r.left) / width * duration); }}>
+          <canvas ref={canvas} className="h-36 w-full text-cyan" />
         </div>
         <div className="pointer-events-none absolute inset-y-0 w-px bg-foreground" style={{ left: Math.min(width - 1, e.position / duration * width) }} />
       </div>

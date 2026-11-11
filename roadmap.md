@@ -1,4 +1,6 @@
 # Roadmap
+- [ ] Consola ancha según referencia, faders altos y página independiente de letras/acordes.
+- [ ] Revisar compatibilidad del motor LibreTracks para la web.
 - [ ] Actualización: gestión SA de canciones compartidas y descargas de stems/ZIP.
 - [ ] Actualización: fechas de servicio por organización.
 - [ ] Actualización: forma de faders sin moverlos, cinta de compases/secciones y contador.
