@@ -1,4 +1,4 @@
-import { createFileRoute, Link, Outlet, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, redirect, useNavigate, useLocation } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -34,6 +34,7 @@ const NAV = [
   { to: "/setlists", label: "Setlists" },
   { to: "/mixer", label: "Mezclador" },
   { to: "/cloud", label: "Nube" },
+  { to: "/lyrics", label: "Letras y acordes" },
   { to: "/present", label: "Proyección" },
   { to: "/remote", label: "Remoto" },
   { to: "/admin", label: "Admin" },
@@ -42,13 +43,14 @@ const NAV = [
 function Shell() {
   const { loading, orgId, orgName, role, email } = useOrg();
   const nav = useNavigate();
+  const isMixer = useLocation().pathname === "/mixer";
   if (loading) return <div className="p-8 font-mono text-muted-foreground">Cargando…</div>;
   if (!orgId) return <CreateOrg />;
   return (
     <div className="console-grid min-h-screen bg-background">
       <header className="flex flex-wrap items-center gap-4 border-b border-border px-6 py-3">
         <Brand />
-        <nav className="flex gap-1">
+        <nav className="flex max-w-full flex-wrap gap-1">
           {NAV.map((n) => (
             <Link key={n.to} to={n.to} className="rounded-md px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground" activeProps={{ className: "bg-secondary text-foreground" }}>
               {n.label}
@@ -61,7 +63,7 @@ function Shell() {
           <Button size="sm" variant="outline" onClick={async () => { await supabase.auth.signOut(); nav({ to: "/auth" }); }}>Salir</Button>
         </div>
       </header>
-      <main className="mx-auto max-w-6xl p-6"><Outlet /></main>
+      <main className={isMixer ? "w-full p-2 sm:p-4" : "mx-auto max-w-6xl p-4 sm:p-6"}><Outlet /></main>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSongs, useStems } from "@/lib/data";
@@ -27,10 +27,12 @@ export const Route = createFileRoute("/_authenticated/mixer")({
   component: Mixer,
 });
 
+function eInitialSong() { return engine.getSnapshot().songId ?? ""; }
+
 function Mixer() {
   const { orgId, can } = useOrg();
   const songs = useSongs();
-  const [songId, setSongId] = useState("");
+  const [songId, setSongId] = useState(eInitialSong());
   const stems = useStems(songId || null);
   const inv = useInvalidate();
   const e = useEngine();
@@ -131,7 +133,7 @@ function Mixer() {
 
       {loaded && (
         <>
-          <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-card p-2">
+          <div className="flex flex-wrap items-center gap-2 border-y border-border bg-panel2 p-3">
             <div className="flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 font-mono text-sm">
               <button className="px-1" onClick={() => engine.setBpm(e.bpm - 1)}>−</button>
               <span className="w-16 text-center">{e.bpm} BPM</span>
@@ -149,11 +151,11 @@ function Mixer() {
 
           {song && <ArrangementRibbon key={song.id} song={song} editable={can("edit")} />}
           <OutputDevice channels={e.outputs.channels} sinkId={e.outputs.sinkId} />
-          <LyricsPanel lyrics={song?.lyrics ?? ""} />
+          <Button asChild variant="outline"><Link to="/lyrics" search={{ song: songId }}>Letras y acordes ↗</Link></Button>
           {can("edit") && song && (
             <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={!!(song as { shared?: boolean }).shared} onChange={async (ev) => { await supabase.from("songs").update({ shared: ev.target.checked }).eq("id", song.id); inv("songs"); toast.success(ev.target.checked ? "Publicada en la Nube" : "Retirada de la Nube"); }} />Compartir en la Nube de multitracks</label>
           )}
-          <div className="flex overflow-x-auto rounded-lg border border-border bg-card">
+          <div className="flex min-h-[490px] overflow-x-auto border-y border-border bg-card">
             {e.stems.map((s) => (
               <ChannelStrip key={s.id} name={s.name} volume={s.volume} pan={s.pan} level={s.level} muted={s.muted} solo={s.solo}
                 accent={STEM_COLOR_BG[s.color] ?? "bg-cyan"}
@@ -232,28 +234,6 @@ function OutputDevice({ channels, sinkId }: { channels: number; sinkId: string }
       </select>
       <span className="font-mono text-xs text-muted-foreground">{channels} salidas detectadas</span>
       {channels <= 2 && <span className="text-xs text-muted-foreground">Si tu interfaz tiene más salidas y solo ves 2, el navegador la está limitando; en la app de escritorio verás todas.</span>}
-    </div>
-  );
-}
-
-const CHORD = /^[A-G][#b]?(m|maj|min|dim|aug|sus|add)?\d*(\/[A-G][#b]?)?$/;
-function LyricsPanel({ lyrics }: { lyrics: string }) {
-  const [show, setShow] = useState(() => typeof localStorage === "undefined" || localStorage.getItem("showChords") !== "0");
-  if (!lyrics.trim()) return null;
-  const text = show ? lyrics : lyrics
-    .replace(/\[[^\]]*\]/g, "")
-    .split("\n")
-    .filter((l) => { const t = l.trim().split(/\s+/).filter(Boolean); return !(t.length && t.every((w) => CHORD.test(w))); })
-    .join("\n");
-  return (
-    <div className="rounded-lg border border-border bg-card p-3">
-      <div className="mb-2 flex items-center justify-between">
-        <span className="font-mono text-xs text-muted-foreground">LETRA</span>
-        <Button size="sm" variant={show ? "default" : "outline"} onClick={() => { const v = !show; setShow(v); localStorage.setItem("showChords", v ? "1" : "0"); }}>
-          {show ? "Ocultar acordes" : "Ver acordes"}
-        </Button>
-      </div>
-      <pre className="max-h-80 overflow-auto whitespace-pre-wrap font-mono text-sm">{text}</pre>
     </div>
   );
 }

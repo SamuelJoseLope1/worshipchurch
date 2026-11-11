@@ -12,3 +12,6 @@
 - Shared catalog mutations use authenticated server functions with the existing verified SA identity gate; only metadata fields are accepted, and deletion retains files referenced by other churches.
 - Mixer sections reuse song markers and engine waveform peaks; bar timing follows the engine's BPM beat convention to keep audio and counters aligned.
 - Client downloads prepare files before a separate delivery click to retain mobile browser user activation.
+
+- The live mixer uses a full-width shell and tall channel strips; lyrics/chords live in a separate authenticated route and reuse the active engine song without interrupting playback.
+- Keep Web Audio for browser playback; LibreTracks' C++/Tauri engine requires native desktop integration and must not be advertised as running in the web app.
