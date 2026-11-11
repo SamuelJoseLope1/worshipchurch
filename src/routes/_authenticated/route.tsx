@@ -33,7 +33,6 @@ const NAV = [
   { to: "/songs", label: "Canciones" },
   { to: "/setlists", label: "Setlists" },
   { to: "/mixer", label: "Mezclador" },
-  { to: "/daw", label: "Editor DAW" },
   { to: "/cloud", label: "Nube" },
   { to: "/present", label: "Proyección" },
   { to: "/remote", label: "Remoto" },
