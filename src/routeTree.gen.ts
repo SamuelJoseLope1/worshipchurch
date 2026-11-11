@@ -17,7 +17,6 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedCloudRouteImport } from './routes/_authenticated/cloud'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
-import { Route as AuthenticatedDawRouteImport } from './routes/_authenticated/daw'
 import { Route as AuthenticatedMixerRouteImport } from './routes/_authenticated/mixer'
 import { Route as AuthenticatedPresentRouteImport } from './routes/_authenticated/present'
 import { Route as AuthenticatedRemoteRouteImport } from './routes/_authenticated/remote'
@@ -65,11 +64,6 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedDawRoute = AuthenticatedDawRouteImport.update({
-  id: '/daw',
-  path: '/daw',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedMixerRoute = AuthenticatedMixerRouteImport.update({
   id: '/mixer',
   path: '/mixer',
@@ -114,7 +108,6 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRoute
   '/cloud': typeof AuthenticatedCloudRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/daw': typeof AuthenticatedDawRoute
   '/mixer': typeof AuthenticatedMixerRoute
   '/present': typeof AuthenticatedPresentRoute
   '/remote': typeof AuthenticatedRemoteRoute
@@ -131,7 +124,6 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminRoute
   '/cloud': typeof AuthenticatedCloudRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/daw': typeof AuthenticatedDawRoute
   '/mixer': typeof AuthenticatedMixerRoute
   '/present': typeof AuthenticatedPresentRoute
   '/remote': typeof AuthenticatedRemoteRoute
@@ -150,7 +142,6 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/cloud': typeof AuthenticatedCloudRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
-  '/_authenticated/daw': typeof AuthenticatedDawRoute
   '/_authenticated/mixer': typeof AuthenticatedMixerRoute
   '/_authenticated/present': typeof AuthenticatedPresentRoute
   '/_authenticated/remote': typeof AuthenticatedRemoteRoute
@@ -169,7 +160,6 @@ export interface FileRouteTypes {
     | '/admin'
     | '/cloud'
     | '/dashboard'
-    | '/daw'
     | '/mixer'
     | '/present'
     | '/remote'
@@ -186,7 +176,6 @@ export interface FileRouteTypes {
     | '/admin'
     | '/cloud'
     | '/dashboard'
-    | '/daw'
     | '/mixer'
     | '/present'
     | '/remote'
@@ -204,7 +193,6 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/cloud'
     | '/_authenticated/dashboard'
-    | '/_authenticated/daw'
     | '/_authenticated/mixer'
     | '/_authenticated/present'
     | '/_authenticated/remote'
@@ -280,13 +268,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/daw': {
-      id: '/_authenticated/daw'
-      path: '/daw'
-      fullPath: '/daw'
-      preLoaderRoute: typeof AuthenticatedDawRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/mixer': {
       id: '/_authenticated/mixer'
       path: '/mixer'
@@ -343,7 +324,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedCloudRoute: typeof AuthenticatedCloudRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
-  AuthenticatedDawRoute: typeof AuthenticatedDawRoute
   AuthenticatedMixerRoute: typeof AuthenticatedMixerRoute
   AuthenticatedPresentRoute: typeof AuthenticatedPresentRoute
   AuthenticatedRemoteRoute: typeof AuthenticatedRemoteRoute
@@ -357,7 +337,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedCloudRoute: AuthenticatedCloudRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
-  AuthenticatedDawRoute: AuthenticatedDawRoute,
   AuthenticatedMixerRoute: AuthenticatedMixerRoute,
   AuthenticatedPresentRoute: AuthenticatedPresentRoute,
   AuthenticatedRemoteRoute: AuthenticatedRemoteRoute,
