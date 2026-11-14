@@ -14,4 +14,16 @@ describe("App routing", () => {
 
     expect(matches.at(-1)?.routeId).not.toBe(rootRouteId);
   });
+
+  it("opens lyrics with or without a selected song", () => {
+    const router = createRouter({ routeTree, context: { queryClient: new QueryClient() } });
+    const route = router.matchRoutes("/lyrics").at(-1)?.routeId;
+    expect(route).toBe("/_authenticated/lyrics");
+    const validate = router.routesById["/_authenticated/lyrics"]?.options.validateSearch;
+    if (typeof validate !== "function") throw new Error("Missing lyrics search validator");
+    expect(validate({})).toEqual({});
+    expect(validate({ song: undefined })).toEqual({});
+    expect(validate({ song: 123 })).toEqual({});
+    expect(validate({ song: "song-123" })).toEqual({ song: "song-123" });
+  });
 });

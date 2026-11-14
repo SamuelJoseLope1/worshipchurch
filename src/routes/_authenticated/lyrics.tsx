@@ -7,7 +7,10 @@ import { useEngine } from '@/lib/audio/useEngine';
 import { chordLine, parseLyrics, transposeLyrics, transposeChord } from '@/lib/music';
 
 export const Route = createFileRoute('/_authenticated/lyrics')({
-  validateSearch: (search: Record<string, unknown>): { song?: string } => ({ song: typeof search.song === 'string' ? search.song : undefined }),
+  validateSearch: (search: Record<string, unknown>): { song?: string } => {
+    const song = search['song'];
+    return typeof song === 'string' ? { song } : {};
+  },
   head: () => ({ meta: [
     { title: 'Letras y acordes — Worship Church' },
     { name: 'description', content: 'Letras, acordes y transposición de tus canciones para el equipo de alabanza.' },
