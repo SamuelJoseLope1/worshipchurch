@@ -4,7 +4,7 @@
  * sample-locked. Includes ClickEngine, PadEngine and the Broadcast bus.
  *
  * Graph:
- *   stem source -> gain -> pan -> analyser -> master -> destination (house/musicians)
+ *   stem source -> gain -> pan -> analyser -> output -> master -> destination
  *                               \-> streamSend -> streamBus (MediaStream for broadcast)
  *   click -> clickGain -> destination (never sent to broadcast)
  *   pad   -> padGain -> master + streamBus
@@ -58,7 +58,7 @@ export type EngineSnapshot = {
 
 type Node = { out: GainNode; gain: GainNode; pan: StereoPannerNode; analyser: AnalyserNode; send: GainNode; buffer?: AudioBuffer; src?: AudioBufferSourceNode | undefined };
 
-class AudioEngine {
+export class AudioEngine {
   private ctx: AudioContext | null = null;
   private masterGain!: GainNode;
   private clickGain!: GainNode;
@@ -74,6 +74,7 @@ class AudioEngine {
   private padNodes: { oscs: OscillatorNode[]; filter: BiquadFilterNode; env: GainNode } | null = null;
   private listeners = new Set<() => void>();
   private loadToken = 0;
+  private playToken = 0;
   private bufCache = new Map<string, AudioBuffer>();
 
   /** Decode a local file right after upload so playback is instant. */
@@ -105,7 +106,8 @@ class AudioEngine {
   private routes = new Map<AudioNode, AudioNode[]>();
 
   private buildOutputs() {
-    const ctx = this.ctx!;
+    const ctx = this.ctx;
+    if (!ctx) return;
     const max = Math.max(2, ctx.destination.maxChannelCount || 2);
     ctx.destination.channelCount = max;
     ctx.destination.channelCountMode = "explicit";
@@ -124,7 +126,8 @@ class AudioEngine {
 
   /** Connects a node to a physical output target. */
   private route(node: AudioNode, target: OutputTarget) {
-    const ctx = this.ctx!;
+    const ctx = this.ctx;
+    if (!ctx) return;
     this.routes.get(node)?.forEach((n) => n.disconnect());
     node.disconnect();
     const extra: AudioNode[] = [];
@@ -221,7 +224,7 @@ class AudioEngine {
 
   get position() {
     if (!this.snap.playing || !this.ctx) return this.offset;
-    return this.offset + (this.ctx.currentTime - this.startedAt) * this.rate;
+    return this.offset + Math.max(0, this.ctx.currentTime - this.startedAt) * this.rate;
   }
   private get rate() {
     return this.snap.varispeed ? this.snap.bpm / (this.snap.originalBpm || this.snap.bpm) : 1;
@@ -230,7 +233,12 @@ class AudioEngine {
   async loadSong(opts: { songId: string; bpm: number; originalBpm: number; timeSig: string; stems: StemInput[]; duration?: number | null }) {
     const ctx = this.ensure();
     this.stop();
-    this.nodes.forEach((n) => { n.gain.disconnect(); n.send.disconnect(); n.out.disconnect(); this.routes.get(n.out)?.forEach((x) => x.disconnect()); this.routes.delete(n.out); });
+    this.nodes.forEach((n) => {
+      n.gain.disconnect(); n.pan.disconnect(); n.analyser.disconnect();
+      n.send.disconnect(); n.out.disconnect();
+      this.routes.get(n.out)?.forEach((x) => x.disconnect());
+      this.routes.delete(n.out);
+    });
     this.nodes.clear();
     const token = ++this.loadToken;
     const stems: StemState[] = opts.stems.map((s) => ({
@@ -264,16 +272,25 @@ class AudioEngine {
       loop: { enabled: false, a: 0, b: 0 },
     });
     this.offset = 0;
-    for (const s of stems) this.route(this.nodes.get(s.id)!.out, s.output ?? "main");
+    for (const s of stems) {
+      const node = this.nodes.get(s.id);
+      if (node) this.route(node.out, s.output ?? "main");
+    }
     this.applyMix();
-    await Promise.all(
-      stems.map(async (s) => {
-        if (!s.path) return;
+    // Bound simultaneous decoding to avoid exhausting memory on phones/tablets.
+    const pending = [...stems];
+    const worker = async () => {
+      while (token === this.loadToken) {
+        const s = pending.shift();
+        if (!s) return;
+        if (!s.path) continue;
         try {
           let buf = this.bufCache.get(s.path);
           if (!buf) {
             const bytes = await fetchAudioBytes(s.path);
+            if (token !== this.loadToken) return;
             buf = await ctx.decodeAudioData(bytes);
+            if (token !== this.loadToken) return;
             if (this.bufCache.size > 60) this.bufCache.clear();
             this.bufCache.set(s.path, buf);
           }
@@ -288,8 +305,9 @@ class AudioEngine {
             e instanceof DOMException ? "Formato no compatible" : "No se pudo cargar el archivo";
           this.patchStem(s.id, { status: "error", error: msg });
         }
-      }),
-    );
+      }
+    };
+    await Promise.all([worker(), worker()]);
   }
 
   private patchStem(id: string, patch: Partial<StemState>) {
@@ -304,8 +322,8 @@ class AudioEngine {
       const n = this.nodes.get(s.id);
       if (!n) continue;
       const audible = !s.muted && (!anySolo || s.solo);
-      n.gain.gain.setTargetAtTime(audible ? s.volume : 0, t, 0.015);
-      n.pan.pan.setTargetAtTime(s.pan, t, 0.015);
+      n.gain.gain.setTargetAtTime(audible ? Math.max(0, Math.min(2, s.volume)) : 0, t, 0.015);
+      n.pan.pan.setTargetAtTime(Math.max(-1, Math.min(1, s.pan)), t, 0.015);
       n.send.gain.setTargetAtTime(s.streamOn ? 1 : 0, t, 0.015);
     }
   }
@@ -316,13 +334,26 @@ class AudioEngine {
   }
 
   setMaster(v: number) {
+    if (!Number.isFinite(v)) return;
+    v = Math.max(0, Math.min(2, v));
     this.set({ master: v });
     if (this.ctx) this.masterGain.gain.setTargetAtTime(v, this.ctx.currentTime, 0.015);
   }
 
-  play() {
+  async play() {
     const ctx = this.ensure();
-    if (this.snap.playing) return;
+    if (this.snap.playing || this.snap.stems.some((s) => s.status === "loading")) return;
+    if (!this.snap.stems.some((s) => s.status === "ready")) return;
+    const token = ++this.playToken;
+    const songToken = this.loadToken;
+    try {
+      if (ctx.state !== "running") await ctx.resume();
+    } catch {
+      this.set({ audioReady: false });
+      return;
+    }
+    if (ctx.state !== "running" || token !== this.playToken || songToken !== this.loadToken) return;
+    this.set({ audioReady: true });
     const when = ctx.currentTime + 0.06;
     const rate = this.rate;
     for (const s of this.snap.stems) {
@@ -342,6 +373,7 @@ class AudioEngine {
   }
 
   pause() {
+    ++this.playToken;
     if (!this.snap.playing) return;
     this.offset = this.position;
     this.killSources();
@@ -365,6 +397,7 @@ class AudioEngine {
   }
 
   private killSources() {
+    ++this.playToken;
     this.nodes.forEach((n) => {
       try { n.src?.stop(); } catch { /* already stopped */ }
       n.src?.disconnect();
@@ -382,7 +415,8 @@ class AudioEngine {
     this.offset = pos;
     if (this.ctx) this.startedAt = this.ctx.currentTime;
     this.set({ bpm: clamped });
-    this.nodes.forEach((n) => n.src?.playbackRate.setValueAtTime(this.rate, this.ctx!.currentTime));
+    const ctx = this.ctx;
+    if (ctx) this.nodes.forEach((n) => n.src?.playbackRate.setValueAtTime(this.rate, ctx.currentTime));
     if (this.snap.playing && this.ctx) this.resetClickPhase(this.ctx.currentTime);
   }
 
@@ -391,7 +425,8 @@ class AudioEngine {
     this.offset = pos;
     if (this.ctx) this.startedAt = this.ctx.currentTime;
     this.set({ varispeed: on });
-    this.nodes.forEach((n) => n.src?.playbackRate.setValueAtTime(this.rate, this.ctx!.currentTime));
+    const ctx = this.ctx;
+    if (ctx) this.nodes.forEach((n) => n.src?.playbackRate.setValueAtTime(this.rate, ctx.currentTime));
   }
 
   /** Downsampled peaks for waveform drawing. */
@@ -399,7 +434,7 @@ class AudioEngine {
     const b = this.nodes.get(id)?.buffer;
     if (!b) return null;
     const d = b.getChannelData(0), step = Math.max(1, Math.floor(d.length / n)), out = new Float32Array(n);
-    for (let i = 0; i < n; i++) { let m = 0; for (let j = i * step, e = Math.min(d.length, j + step); j < e; j += 16) m = Math.max(m, Math.abs(d[j]!)); out[i] = m; }
+    for (let i = 0; i < n; i++) { let m = 0; for (let j = i * step, e = Math.min(d.length, j + step); j < e; j += 16) m = Math.max(m, Math.abs(d[j] ?? 0)); out[i] = m; }
     return out;
   }
 
@@ -494,7 +529,8 @@ class AudioEngine {
   }
 
   private tick(time: number, accent: number) {
-    const ctx = this.ctx!;
+    const ctx = this.ctx;
+    if (!ctx) return;
     const osc = ctx.createOscillator();
     const env = ctx.createGain();
     osc.frequency.value = accent === 2 ? 1800 : accent === 1 ? 1400 : accent === -1 ? 900 : 1100;
