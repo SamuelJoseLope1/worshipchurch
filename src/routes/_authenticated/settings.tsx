@@ -45,11 +45,14 @@ function Settings() {
   };
   const saveName = async () => {
     const { error } = await supabase.from("profiles").upsert({ id: userId, display_name: name });
-    error ? toast.error(error.message) : toast.success("Nombre guardado");
+    if (error) { toast.error(error.message); return; }
+    toast.success("Nombre guardado");
   };
   const changePass = async () => {
     const { error } = await supabase.auth.updateUser({ password: pass });
-    error ? toast.error(error.message) : (toast.success("Contraseña cambiada"), setPass(""));
+    if (error) { toast.error(error.message); return; }
+    toast.success("Contraseña cambiada");
+    setPass("");
   };
   const clearCache = async () => {
     for (const k of await caches.keys()) await caches.delete(k);
@@ -59,7 +62,8 @@ function Settings() {
   const leave = async (org: string) => {
     if (!confirm("¿Salir de esta iglesia?")) return;
     const { error } = await supabase.from("organization_members").delete().eq("org_id", org).eq("user_id", userId);
-    error ? toast.error(error.message) : qc.invalidateQueries({ queryKey: ["memberships"] });
+    if (error) { toast.error(error.message); return; }
+    await qc.invalidateQueries({ queryKey: ["memberships"] });
   };
   const signOut = async () => { await supabase.auth.signOut(); nav({ to: "/auth" }); };
   const destroy = async () => {

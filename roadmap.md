@@ -1,4 +1,5 @@
 # Roadmap
+- [ ] Corregir errores actuales y comprobar páginas privadas, reproducción y letras/acordes.
 - [ ] Consola ancha según referencia, faders altos y página independiente de letras/acordes.
 - [ ] Revisar compatibilidad del motor LibreTracks para la web.
 - [ ] Actualización: gestión SA de canciones compartidas y descargas de stems/ZIP.
