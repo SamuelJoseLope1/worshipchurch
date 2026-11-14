@@ -14,7 +14,7 @@ class AudioNodeMock {
   playbackRate = new Param();
   buffer: unknown;
   fftSize = 256;
-  connect = vi.fn(() => this);
+  connect = vi.fn((destination: AudioNodeMock) => destination);
   disconnect = vi.fn();
   start = vi.fn();
   stop = vi.fn();
