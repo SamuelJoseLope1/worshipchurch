@@ -1,4 +1,5 @@
 # Roadmap
+- [ ] Fase 3: reforzar sincronización, activación y limpieza del motor Web Audio; comprobar volumen, paneo y salida Master.
 - [x] Corregir errores actuales y comprobar páginas privadas, reproducción y letras/acordes.
 - [ ] Consola ancha según referencia, faders altos y página independiente de letras/acordes.
 - [ ] Revisar compatibilidad del motor LibreTracks para la web.

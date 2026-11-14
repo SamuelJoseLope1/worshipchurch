@@ -15,3 +15,4 @@
 
 - The live mixer uses a full-width shell and tall channel strips; lyrics/chords live in a separate authenticated route and reuse the active engine song without interrupting playback.
 - Keep Web Audio for browser playback; LibreTracks' C++/Tauri engine requires native desktop integration and must not be advertised as running in the web app.
+- Await AudioContext activation before a shared stem start timestamp, invalidate pending starts on transport changes, and bound decoding to two workers so mobile playback remains synchronized without parallel memory spikes.
