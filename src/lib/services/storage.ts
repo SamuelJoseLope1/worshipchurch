@@ -53,7 +53,7 @@ export const cloudStorage: StorageProvider = {
 export const storage: StorageProvider = cloudStorage;
 
 export function safeName(name: string) {
-  return name.normalize("NFD").replace(/[^\w.\-]+/g, "_");
+  return name.normalize("NFD").replace(/[^\w.-]+/g, "_");
 }
 
 /* ---------- OfflineService: Cache Storage for audio blobs ---------- */
